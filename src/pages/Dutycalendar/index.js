@@ -195,18 +195,18 @@ class Dutycalendar extends Component {
 	// }
 
 	// 查找树
-    findTarget(targetName, source) {
-		let resut = undefined;
-        for (let item of source) {
-			if (item.id === targetName) {
-				resut = item
-				if(resut) return resut
-			}else if(item.children && item.children.length) {
-				resut = this.findTarget(targetName, item.children)
-				if(resut) return resut
-			}
-		}
-	}
+    // findTarget(targetName, source) {
+	// 	let resut = undefined;
+    //     for (let item of source) {
+	// 		if (item.id === targetName) {
+	// 			resut = item
+	// 			if(resut) return resut
+	// 		}else if(item.children && item.children.length) {
+	// 			resut = this.findTarget(targetName, item.children)
+	// 			if(resut) return resut
+	// 		}
+	// 	}
+	// }
 	
 
 	// 日历切换
@@ -261,9 +261,9 @@ class Dutycalendar extends Component {
 	// 	})
 	// }
 	
-	searchChange = (e) => {
-		this.setState({search: e.target.value})
-	}
+	// searchChange = (e) => {
+	// 	this.setState({search: e.target.value})
+	// }
 
 	componentDidMount(){
 		this.getBelongIds();
@@ -367,7 +367,7 @@ class Dutycalendar extends Component {
 					</div>
 						</div> : ''
 					} */}
-					<Form horizontal onSubmit={this.handleSubmit}>
+					<Form horizontal>
 						<FormItem {...formItemLayout} label="调换日期" >
 							<DatePicker value={atdDate} disabledDate={disabledDate} onChange={this.findUser}/>
         				</FormItem>

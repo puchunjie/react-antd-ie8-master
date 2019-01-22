@@ -40,7 +40,7 @@ class Login extends Component {
 					required: true,
 					message: '请输入账号'
 				}],
-				trigger: ['onBlur', 'onChange']
+				trigger: ['onBlur']
 			}]
         });
         const passwordProps = getFieldProps('password', {
@@ -49,7 +49,7 @@ class Login extends Component {
 					required: true,
 					message: '请输入密码'
 				}],
-				trigger: ['onBlur', 'onChange']
+				trigger: ['onBlur']
 			}]
         });
         return <Modal title="登录" visible={true} onOk={this.handleOk}>

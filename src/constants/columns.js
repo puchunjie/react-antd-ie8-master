@@ -16,6 +16,9 @@ export const NAV_MENU = isAdmin ? [{
 	},
 	{
 		key: "/vacation",
+	},
+	{
+		key: "/leavemange",
 	}
 ] : [{
 	key: "/dutycalendar"
@@ -49,6 +52,11 @@ export const NAV_URLS = isAdmin ? {
 	},
 	"/vacation": {
 		label: "年休假配置",
+		icon: "appstore",
+		type: "link"
+	},
+	"/leavemange": {
+		label: "员工假期管理",
 		icon: "appstore",
 		type: "link"
 	}

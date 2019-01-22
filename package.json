@@ -7,8 +7,8 @@
   "description": "study react antd ie8",
   "scripts": {
     "dev": "cross-env NODE_ENV=development webpack --cache --colors --profile --progress --hide-modules",
-    "app": "cross-env NODE_ENV=production webpack --cache --colors --profile --progress --hide-modules",
-    "start": "cross-env NODE_ENV=development webpack-dev-server --cache --colors --profile --progress -d"
+    "app": "cross-env NODE_ENV=production webpack --cache --colors --profile --progress --hide-modules ",
+    "start": "cross-env NODE_ENV=development webpack-dev-server --cache --colors --profile --progress --host 192.168.0.9 -d --open"
   },
   "browserslist": [
     "last 2 versions",

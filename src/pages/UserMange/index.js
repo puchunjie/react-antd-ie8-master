@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import './style.less'
 import { DatePicker, Button, Icon, Spin, Calendar, Select, Table, Modal,Upload, message,Form, Input } from "antd";
-import { $post, getCookie, apiDomain } from "../../utils/auth";
+import { $post, getCookie } from "../../utils/auth";
 const Option = Select.Option;
 const confirm = Modal.confirm;
 const FormItem = Form.Item;
@@ -69,7 +69,7 @@ class UserMange extends Component {
         this.setState({
 			loading: true
 		});
-        $post( apiDomain + '/paiban/api/user/v1/search',params).done(res => {
+        $post('/paiban/api/user/v1/search',params).done(res => {
 			if(res.status == 200){
                 let data = res.body ? res.body.records : [];
                 data = data.map(item => {

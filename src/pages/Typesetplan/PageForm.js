@@ -59,7 +59,7 @@ class PageForm extends Component {
 					required: true,
 					message: '请输入或选择计划归属'
 				}],
-				trigger: ['onBlur', 'onChange']
+				trigger: ['onBlur']
 			}]
         });
         const belongIdProps = getFieldProps('belongId');
@@ -70,7 +70,7 @@ class PageForm extends Component {
 					required: true,
 					message: '请输入计划名称'
 				}],
-				trigger: ['onBlur', 'onChange']
+				trigger: ['onBlur']
 			}]
 		});
 		const rangDateProps = getFieldProps('rangDate', {
@@ -104,22 +104,7 @@ class PageForm extends Component {
             rules: [{
                     required: true,
                     message: '请选择人员！'
-                },
-                {
-                    validator: (rule, value, callback) => {
-                        if (!value) {
-                            callback();
-                        } else {
-                            setTimeout(() => {
-                                if (value === 'JasonWood') {
-                                    callback([new Error('抱歉，该用户名已被占用。')]);
-                                } else {
-                                    callback();
-                                }
-                            }, 800);
-                        }
-                    }
-                },
+                }
             ]
         });
 		const formItemLayout = {
@@ -182,7 +167,7 @@ class PageForm extends Component {
                         label="每日值班领导数"
                         hasFeedback
                     >
-                        <InputNumber {...leaderNumProps} min={0} style={{ width:450 }} placeholder="请输入"/>
+                        <Input {...leaderNumProps} style={{ width:450 }} placeholder="请输入"/>
                     </FormItem>
             
                     <FormItem
@@ -190,7 +175,7 @@ class PageForm extends Component {
                         label="每日值班干部数"
                         hasFeedback
                     >
-                        <InputNumber {...employeeNumProps} min={0} style={{ width:450 }} placeholder="请输入" />
+                        <Input {...employeeNumProps} style={{ width:450 }} placeholder="请输入" />
                     </FormItem>
                     <FormItem
                         {...formItemLayout}

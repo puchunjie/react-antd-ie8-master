@@ -7,6 +7,7 @@ import Dutyschedule from "bundle-loader?lazy&name=home!../pages/Dutyschedule/ind
 import UserMange from "bundle-loader?lazy&name=home!../pages/UserMange/index";
 import Login from "bundle-loader?lazy&name=home!../pages/Login/index";
 import Vacation from "bundle-loader?lazy&name=home!../pages/Vacation/index";
+import LeaveMange from 'bundle-loader?lazy&name=home!../pages/LeaveMange/index'
 import { bundle } from "../components/Bundle";
 
 const Empty = props => <div><Spin />Loading</div>;
@@ -17,6 +18,7 @@ const DutyS = bundle(Empty, Dutyschedule, { type: "callback" });
 const UserM = bundle(Empty, UserMange, { type: "callback" });
 const Logind = bundle(Empty, Login, { type: "callback" });
 const Vk = bundle(Empty, Vacation, { type: "callback" });
+const LM = bundle(Empty, LeaveMange, { type: "callback" });
 const routes = [
 	{ type: "redirect", exact: true, strict: true, from: "/", to: "/dutycalendar" },
 	{ type: "route", path: "/login", component: Logind },
@@ -25,6 +27,7 @@ const routes = [
 	{ type: "route", path: "/dutyschedule", component: DutyS },
 	{ type: "route", path: "/vacation", component: Vk },
 	{ type: "route", path: "/usermange", component: UserM },
+	{ type: "route", path: "/leavemange", component: LM },
 	{ type: "route", component: NoAu },
 ];
 export default routes;

@@ -299,8 +299,7 @@ class Typesetplan extends Component {
 				pagination={this.pagination(this.state.total,this.state.params)} />
 			</div>
 
-			<Modal title="人员" width={800} visible={this.state.userShow} onCancel={this.userHide}
-			footer={['']}>
+			<Modal title="人员" width={800} visible={this.state.userShow} onCancel={this.userHide}>
 				{
 					this.state.userShow ? <Table rowKey='userId' bordered dataSource={userData} columns={this.cols1(userData)} 
 					pagination={{total:this.state.userData.length,defaultCurrent: 1}}/> : ''
@@ -308,8 +307,7 @@ class Typesetplan extends Component {
 				
 			</Modal>
 
-			<Modal title="休假人员" width={800} visible={this.state.vocationShow} onCancel={this.vacationHide}
-			footer={['']}>
+			<Modal title="休假人员" width={800} visible={this.state.vocationShow} onCancel={this.vacationHide}>
 				<Table rowKey='userId' bordered dataSource={vacations} columns={this.cols2(vacations)} 
 				pagination={{total:this.state.vacations.length}}/>
 			</Modal>
