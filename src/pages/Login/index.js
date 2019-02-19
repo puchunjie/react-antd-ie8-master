@@ -52,7 +52,7 @@ class Login extends Component {
 				trigger: ['onBlur']
 			}]
         });
-        return <Modal title="登录" visible={true} onOk={this.handleOk}>
+        return <Modal title="登录" visible={true} onOk={this.handleOk} closable={false}>
             <Form horizontal onSubmit={this.handleSubmit}>
             <FormItem label="账户" >
                 <Input {...nameProps} placeholder="请输入账户名" />

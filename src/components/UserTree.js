@@ -34,7 +34,6 @@ class UserTree extends Component {
                 return [this.findTarget(item,this.state.treeData)]
             }
         });
-        console.log(flatten(outPut))
         this.props.onChange(flatten(outPut))
     }
 
@@ -91,7 +90,7 @@ class UserTree extends Component {
             showCheckedStrategy: SHOW_PARENT,
             searchPlaceholder: '请选择'
           };
-        return <TreeSelect style={{ width:'100%' }} {...tProps} />;
+        return <TreeSelect style={{ width:'100%',maxHeight: 125,overflowX: 'hidden' }} {...tProps} />;
     }
 }
 

@@ -265,7 +265,7 @@ class LeaveMange extends Component {
             pagination={this.pagination(this.state.total,this.state.params)} />
 
 
-            <Modal title="添加员工休假" visible={this.state.visible} 
+            <Modal title="添加员工休假" visible={this.state.visible}  closable={false}
             footer={footers()}>
 					{
 						this.state.step1 ? 

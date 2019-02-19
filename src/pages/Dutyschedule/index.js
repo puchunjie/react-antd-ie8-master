@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import "./style.less";
 import {  Button, Spin, Select, Table,Form, Input } from "antd";
-import { $get, $post } from "../../utils/auth";
+import { $get, $post, getCookie, setCookie } from "../../utils/auth";
 const Option = Select.Option;
 const FormItem = Form.Item;
 
@@ -111,6 +111,7 @@ class Dutyschedule extends Component {
 		this.setState({
             selectValue: value
 		});
+		// setCookie('belongId', value);
 	}
 
 	//年份改变
@@ -133,7 +134,7 @@ class Dutyschedule extends Component {
 
 	// 获取计划归属
 	getBelongIds = () => {
-		$get('/paiban/api/atd/attendance-plan-belong/v1/search').done(res => {
+		return $get('/paiban/api/atd/attendance-plan-belong/v1/search').done(res => {
 			if(res.status == 200){
 				let ops = res.body.map(item => {
 					return {
@@ -142,15 +143,17 @@ class Dutyschedule extends Component {
 					}
 				})
 				ops.unshift({id: '', name: '全部'})
+				let belongId = getCookie('belongId') ? getCookie('belongId') : ops[0] ? ops[0].id : '';
 				this.setState({
-					options: ops
+					options: ops,
+					selectValue: belongId
 				})
 			}
 		})
 	}
 
-	componentDidMount(){
-		this.getBelongIds();
+	async componentDidMount(){
+		await this.getBelongIds();
 		this.getList();
 	}
 	render() {

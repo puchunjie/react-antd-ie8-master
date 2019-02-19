@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import "./style.less";
 import { DatePicker, Button, Spin, Select, Table, Modal, message,Form, Input, Popover } from "antd";
-import { $get, $post } from "../../utils/auth";
+import { $get, $post, getCookie, setCookie } from "../../utils/auth";
 import PageForm from './PageForm';
 const Option = Select.Option;
 const confirm = Modal.confirm;
@@ -16,9 +16,11 @@ class Typesetplan extends Component {
 		defaultCurrent: 1,
 		list: [], //排班表
 		userData: [],
+		userDataChe: [],
 		userShow: false,
 		vocationShow: false,
 		vacations: [],
+		vacationsChe: [],
 		loading: false,
 		options: [], //计划归属选项
 		selectValue: '',
@@ -30,7 +32,9 @@ class Typesetplan extends Component {
 			page: 1,
 			pageSize: 10
 		},
-		total: 0
+		total: 0,
+		userSearchValue: '',
+		userSearchValue2: ''
 	};
 
 	//获取排班计划列表
@@ -56,6 +60,7 @@ class Typesetplan extends Component {
 		this.setState({
             selectValue: value
 		});
+		// setCookie('belongId', value);
 	}
 
 	//输入框搜索
@@ -77,7 +82,7 @@ class Typesetplan extends Component {
 
 	// 获取计划归属
 	getBelongIds = () => {
-		$get('/paiban/api/atd/attendance-plan-belong/v1/search').done(res => {
+		return $get('/paiban/api/atd/attendance-plan-belong/v1/search').done(res => {
 			if(res.status == 200){
 				let ops = res.body.map(item => {
 					return {
@@ -86,9 +91,13 @@ class Typesetplan extends Component {
 					}
 				})
 				ops.unshift({id: '', name: '全部'})
+				let belongId = getCookie('belongId') ? getCookie('belongId') : ops[0] ? ops[0].id : '';
 				this.setState({
-					options: ops
+					options: ops,
+					selectValue: belongId
 				})
+				
+				
 			}
 		})
 	}
@@ -232,6 +241,7 @@ class Typesetplan extends Component {
 			if(res.status == 200){
 				this.setState({
 					userData: res.body,
+					userDataChe: res.body,
 					userShow: true,
 					defaultCurrent: 1
 				})
@@ -245,7 +255,38 @@ class Typesetplan extends Component {
 			userShow: false
 		})
 	}
+
+	userSearch = () => {
+		this.setState({
+			userData: this.state.userDataChe.filter(item => item.userName.includes(this.state.userSearchValue))
+		})
+	}
+
+	resSetSearch1 = () =>{
+		this.setState({
+			userSearchValue: '',
+			userData: JSON.parse(JSON.stringify(this.state.userDataChe))
+		})
+	}
+
+	userSearch2 = () => {
+		this.setState({
+			vacations: this.state.vacationsChe.filter(item => item.userName.includes(this.state.userSearchValue))
+		})
+	}
+
+	resSetSearch2 = () =>{
+		this.setState({
+			userSearchValue2: '',
+			vacations: JSON.parse(JSON.stringify(this.state.userDataChe))
+		})
+	}
 	
+	chageUerSvalue = (e) => {
+		this.setState({
+			userSearchValue: e.target.value
+		})
+	}
 	
 	showVaction = (item) => {
 		if(!item.vacationUserCount) return 
@@ -255,7 +296,8 @@ class Typesetplan extends Component {
 			if(res.status == 200){
 				this.setState({
 					vocationShow: true,
-					vacations: res.body
+					vacations: res.body,
+					vacationsChe: res.body
 				})
 			}
 		})
@@ -268,8 +310,8 @@ class Typesetplan extends Component {
 		})
 	}
 
-	componentDidMount(){
-		this.getBelongIds();
+	async componentDidMount(){
+		await this.getBelongIds();
 		this.getList();
 	}
 	render() {
@@ -300,15 +342,23 @@ class Typesetplan extends Component {
 			</div>
 
 			<Modal title="人员" width={800} visible={this.state.userShow} onCancel={this.userHide}>
+				<Input placeholder="请输入姓名搜索"
+				value={this.state.userSearchValue} onChange={this.chageUerSvalue} 
+				style={{ width: 200 }} /> <Button type="primary" onClick={this.userSearch}>搜索</Button>	
+				<Button style={{ marginLeft: 10 }} type="primary" onClick={this.resSetSearch1}>重置</Button>
 				{
-					this.state.userShow ? <Table rowKey='userId' bordered dataSource={userData} columns={this.cols1(userData)} 
+					this.state.userShow ? <Table style={{ marginTop: 10 }} rowKey='userId' bordered dataSource={userData} columns={this.cols1(userData)} 
 					pagination={{total:this.state.userData.length,defaultCurrent: 1}}/> : ''
 				}
 				
 			</Modal>
 
 			<Modal title="休假人员" width={800} visible={this.state.vocationShow} onCancel={this.vacationHide}>
-				<Table rowKey='userId' bordered dataSource={vacations} columns={this.cols2(vacations)} 
+				<Input placeholder="请输入姓名搜索"
+				value={this.state.userSearchValue2} onChange={this.chageUerSvalue2} 
+				style={{ width: 200 }} /> <Button type="primary" onClick={this.userSearch2}>搜索</Button>	
+				<Button style={{ marginLeft: 10 }} type="primary" onClick={this.resSetSearch2}>重置</Button>
+				<Table style={{ marginTop: 10 }} rowKey='userId' bordered dataSource={vacations} columns={this.cols2(vacations)} 
 				pagination={{total:this.state.vacations.length}}/>
 			</Modal>
 			</Spin>;

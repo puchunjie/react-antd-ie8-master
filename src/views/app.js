@@ -1,6 +1,6 @@
 import React from "react";
 import { Router } from "react-router-dom";
-import { Row, Col } from 'antd';
+import { Row, Col, Popover } from 'antd';
 import { getCookie, delCookie } from "../utils/auth";
 
 import { NAV_MENU, NAV_URLS } from "../constants/columns";
@@ -18,6 +18,18 @@ const loginOut = () => {
 	window.location.href = process.env.NODE_ENV == 'development' ? '/#/login' : '/paiban/#/login';
 }
 
+const resetPassword = () => {
+	window.location.href = process.env.NODE_ENV == 'development' ? '/#/resetPwd' : '/paiban/#/resetPwd';
+}
+
+const nav = (
+	<div style={{ textAlign:'center' }}>
+		<a onClick={resetPassword}>修改密码</a>
+	</div>
+)
+
+
+
 const App = props =>
 	<Router history={history}>
 		<Row className="container">
@@ -29,7 +41,9 @@ const App = props =>
 				<div className="header">
 					<span>
 					欢迎使用：<a className="ant-dropdown-link">
-					{getCookie('userName')} 
+					<Popover content={nav} trigger="hover">
+						<span>{getCookie('userName')} </span>
+					</Popover>
 					</a> | <a onClick={loginOut}>注销</a>
 					</span>
 				</div>

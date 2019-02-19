@@ -15,7 +15,9 @@ class Dutycalendar extends Component {
 		list: [], //日历数据
 		loading: false,
 		options: [],
+		jihuaoptions: [],
 		selectValue: '',
+		jihuaValue: '',
 		year: new Date().getFullYear(),
 		month: new Date().getMonth() + 1,
 		dateDone: false,
@@ -39,7 +41,8 @@ class Dutycalendar extends Component {
 		$get('/paiban/api/atd/attendance/v1/list/month', {
 			belongId: belongId || this.state.selectValue,
 			year: this.state.year,
-			month: this.state.month
+			month: this.state.month,
+			planId: this.state.jihuaValue
 		}).done(res => {
 			if(res.status == 200){
 				this.state.list = res.body.map(item => {
@@ -218,19 +221,32 @@ class Dutycalendar extends Component {
 		this.setState({
 			dateValue: new Date(date.time)
 		})
-		this.getList();
+		this.getPlanes().then(() => {
+			this.getList()
+		});
 	}
 	//选择计划归属
-	handleChange = (value) => {
+	 handleChange = (value) => {
 		this.setState({
             selectValue: value
 		});
 		setCookie('belongId', value);
-		this.getList(value);
+		this.getPlanes(value).then(() => {
+			this.getList()
+		});
 	}
+
+	jiaChange = (value) => {
+		this.setState({
+    	jihuaValue: value
+		});
+		this.state.jihuaValue = value;
+		this.getList();
+	}
+
 	// 获取计划归属
 	getBelongIds = () => {
-		$get('/paiban/api/atd/attendance-plan-belong/v1/search').done(res => {
+		return $get('/paiban/api/atd/attendance-plan-belong/v1/search').done(res => {
 			if(res.status == 200){
 				let ops = res.body.map(item => {
 					return {
@@ -239,13 +255,11 @@ class Dutycalendar extends Component {
 					}
 				})
 				this.setState({
-					options: ops,
-					selectValue: ops[0] ? ops[0].id : ''
+					options: ops
 				})
 				
 				let belongId = getCookie('belongId') ? getCookie('belongId') : ops[0] ? ops[0].id : '';
 				this.setState({ selectValue: belongId })
-				this.getList(belongId);
 			}
 		})
 	}
@@ -265,8 +279,33 @@ class Dutycalendar extends Component {
 	// 	this.setState({search: e.target.value})
 	// }
 
-	componentDidMount(){
-		this.getBelongIds();
+	getPlanes = (bid) => {
+		return $post('/paiban/api/atd/attendance-plan/v1/list/by_belong_month',{
+			belongId: bid || this.state.selectValue,
+			year: this.state.year,
+			month: this.state.month
+		}).done(res => {
+			if(res.status == 200){
+				let ops = res.body.map(item => {
+					return {
+						id: String(item.planId),
+						name: item.name
+					}
+				})
+				this.setState({
+					jihuaoptions: ops
+				})
+				
+				let jihuaId = ops[0] ? ops[0].id : '';
+				this.setState({ jihuaValue: jihuaId })
+			}
+		})
+	}
+
+	async componentDidMount(){
+		await this.getBelongIds();
+		await this.getPlanes();
+		this.getList();
 		// this.getUerData();
 	}
 
@@ -282,7 +321,9 @@ class Dutycalendar extends Component {
 		this.setState({
 			dateValue: new Date(date)
 		})
-		this.getList();
+		this.getPlanes().then(() => {
+			this.getList()
+		});
 	}
 
 	next = () => {
@@ -297,11 +338,13 @@ class Dutycalendar extends Component {
 		this.setState({
 			dateValue: new Date(date)
 		})
-		this.getList();
+		this.getPlanes().then(() => {
+			this.getList()
+		});
 	}
 
 	render() {
-		const { dateValue, loading, options, selectValue, treeData,atdDate } = this.state;
+		const { dateValue, loading, options, selectValue, treeData,atdDate, jihuaValue,jihuaoptions } = this.state;
 		let calender = null;
 		if(this.state.dateDone){
 			calender = <Calendar ref="calender" className="server-calendar"
@@ -342,13 +385,19 @@ class Dutycalendar extends Component {
 		return <Spin spinning={ loading}>
 			<div className="dutycalendar-container">
 				<div className="belong-select">
-					计划归属 ： <Select value={ selectValue } style={{ width: 200 }} onSelect={this.handleChange}>
+					计划归属 ： <Select value={ selectValue } style={{ width: 200,marginRight: 10 }} onSelect={this.handleChange}>
 						{options.map((option) => {
 							return <Option key={ option.id } value={ option.id }>{ option.name }</Option>
 						})}
 						</Select>
 
-						<ButtonGroup style={{ marginLeft:300 }}>
+						值班计划：<Select value={ jihuaValue } style={{ width: 200 }} onSelect={this.jiaChange}>
+						{jihuaoptions.map((option) => {
+							return <Option key={ option.id } value={ option.id }>{ option.name }</Option>
+						})}
+						</Select>
+
+						<ButtonGroup style={{ marginLeft:100 }}>
 							<Button type="primary" onClick={this.prev}><Icon type="left" />上个月</Button>
 							<Button type="primary" onClick={this.next}>下个月<Icon type="right" /></Button>
 						</ButtonGroup>

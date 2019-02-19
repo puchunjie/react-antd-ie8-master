@@ -1,16 +1,29 @@
 import React, { Component } from "react";
 import { $post, $get } from "../../utils/auth";
 import df from 'dateformat-util'
-import { Button, Icon, Spin, Table, Tag, Modal, Form, DatePicker, Input, message } from "antd";
+import { Button, Icon, Spin, Table, Tag, Modal, Form, DatePicker, Input, message, Select, Radio } from "antd";
 import "./style.less";
 const RangePicker = DatePicker.RangePicker;
+const Option = Select.Option;
 const createForm = Form.create;
 const FormItem = Form.Item;
 const confirm = Modal.confirm;
+const RadioGroup = Radio.Group;
+
+
+const createYears = (start = 2018) => {
+    let years = [];
+    let end = start + 32;
+    for(let i = start; i <= end; i++){
+        years.push(String(i))
+    }
+    return years
+}
 
 class InForm extends Component {
     state = {
-        workingDays: []
+        workingDays: [],
+        years: createYears()
     }
     addWork = () => {
         let workingDays = JSON.parse(JSON.stringify(this.state.workingDays));
@@ -45,7 +58,8 @@ class InForm extends Component {
                 workingDayList: this.props.item.workingDays,
                 name: this.props.item.name,
                 year: this.props.item.year,
-                rangDate: [new Date(this.props.item.startDate),new Date(this.props.item.endDate)]
+                rangDate: [new Date(this.props.item.startDate),new Date(this.props.item.endDate)],
+                official: String(this.props.item.official)
             })
         }else{
             this.props.form.setFieldsValue({ workingDayList: this.state.workingDays.map(item => item.value) })
@@ -71,9 +85,9 @@ class InForm extends Component {
 			validate: [{
 				rules: [{
 					required: true,
-					message: '请输入年度'
+					message: '请选择年度'
 				}],
-				trigger: ['onBlur', 'onChange']
+				trigger: ['onChange']
 			}]
         });
         const rangDateProps = getFieldProps('rangDate', {
@@ -95,6 +109,12 @@ class InForm extends Component {
 			},
         };
 
+        const radioProps = getFieldProps('official', {
+            rules: [
+              { required: true, message: '请选择假期性质' },
+            ],
+          });
+
 
         return <Form horizontal ref="test">
             <FormItem
@@ -109,7 +129,12 @@ class InForm extends Component {
                 label="年度"
                 hasFeedback
             >
-                <Input {...yearProps} type="text" style={{ width:300 }} placeholder="请输入年度" />
+                <Select {...yearProps} style={{ width: 300 }}>
+						{this.state.years.map((option) => {
+							return <Option key={ option } value={ option }>{ option }</Option>
+						})}
+				</Select>
+                {/* <Input {...yearProps} type="text" style={{ width:300 }} placeholder="请输入年度" /> */}
             </FormItem>
             <FormItem
                 {...formItemLayout}
@@ -118,6 +143,18 @@ class InForm extends Component {
             >
                 <RangePicker {...rangDateProps} />
             </FormItem>
+            
+            <FormItem
+                {...formItemLayout}
+                label="假期性质"
+                hasFeedback
+            >
+                <RadioGroup {...radioProps}>
+                    <Radio value="1">法定假期</Radio>
+                    <Radio value="0">自定义假期</Radio>
+                </RadioGroup>
+            </FormItem>
+            
             {
                 this.state.workingDays.map((item,i) => {
                     return <FormItem key={item.key} {...formItemLayout} label="工作日">
@@ -140,21 +177,25 @@ class Vacation extends Component {
         faVacations: [],
         modalShow: false,
         isEdit: false,
-        item: {}
+        item: {},
+        years: createYears(),
+        activeYear: String(new Date().getFullYear())
     }
 
-    getList = () => {
+    getList = (year) => {
 		this.setState({
 			loading: true
 		});
-		$get('/paiban/api/atd/annual-vacation/v1/list').done(res => {
+		$get('/paiban/api/atd/annual-vacation/v1/list',{
+            year: year || this.state.activeYear
+        }).done(res => {
 			if(res.status == 200){
-                let data = res.body.map(item => {
-                    item.workingDays = JSON.parse(item.workingDays)
+                let data = res.body.length > 0 ? res.body.map(item => {
+                    item.workingDays = item.workingDays == '' ? [] : JSON.parse(item.workingDays)
                     return item
-                })
-                let customVacations = data.filter(item => item.official === 0);
-                let faVacations = data.filter(item => item.official === 1);
+                }) : [];
+                let customVacations = data.filter(item => item.official === 0) || [];
+                let faVacations = data.filter(item => item.official === 1) || [];
                 this.setState({customVacations,faVacations})
 			}else{
                 message.success(res.msg);
@@ -173,18 +214,19 @@ class Vacation extends Component {
 			if (!!errors) {
 				return;
 			}else{
-                const { name,year,workingDayList,rangDate } = values;
+                const { name,year,workingDayList,rangDate,official } = values;
                 let params = {
                     name,
                     year,
                     startDate: df.format(rangDate[0], 'yyyy-MM-dd'),
                     endDate: df.format(rangDate[1], 'yyyy-MM-dd'),
                     workingDayList,
-                    official: 0
+                    official
 
                 }
                 if(this.state.isEdit){
                     params.id = this.state.item.id;
+                    params.official = this.state.item.official;
                     $post('/paiban/api/atd/annual-vacation/v1/change',params).done(res => {
                         if(res.status == 200){
                             this.getList();
@@ -237,6 +279,13 @@ class Vacation extends Component {
     modify = (item) => {
         this.setState({modalShow: true,isEdit: true,item: item})
     }
+
+    changeYear = value => {
+        this.setState({
+            activeYear: value
+        })
+        this.getList(value)
+    }
     
     componentDidMount(){
         this.getList();
@@ -259,7 +308,10 @@ class Vacation extends Component {
           }, {
             title: '工作日',
             dataIndex: 'endDate',
-            key: '4'
+            key: '4',
+            render: (text, record) => (
+                record.workingDays.map((day,i) => <Tag key={i}>{day}</Tag>)
+            )
           }]
           const columns2 = [{
             title: '假期名称',
@@ -295,14 +347,21 @@ class Vacation extends Component {
           
         return <Spin spinning={ loading}>
             <div className="vacation-container">
+                <div>
+                    年度：<Select value={this.state.activeYear} style={{ width: 300 }} onChange={this.changeYear} placeholder="请选择年度">
+						{this.state.years.map((option) => {
+							return <Option key={ option } value={ option }>{ option }</Option>
+						})}
+				</Select>
+                <Button style={{ float:'right' }} type="primary" onClick={ this.showAdd }>添加</Button>
+                </div>
                 <h2 style={{ marginBottom:10 }}>法定节假日</h2>
-                <Table dataSource={faVacations} bordered columns={columns} pagination={false}/>
-                <h2 style={{ marginBottom:10,marginTop: 30 }}>自定义节假日 
-                <Button style={{ float:'right' }} type="primary" onClick={ this.showAdd }>添加</Button></h2>
+                <Table dataSource={faVacations} bordered columns={columns2} pagination={false}/>
+                <h2 style={{ marginBottom:10,marginTop: 30 }}>自定义节假日</h2>
                 <Table dataSource={customVacations} bordered columns={columns2} pagination={false}/>
             </div>
 
-            <Modal title="添加自定义假期" visible={this.state.modalShow} 
+            <Modal title={this.state.isEdit ? '修改节假日' : '添加节假日'} visible={this.state.modalShow} 
             okText={this.state.isEdit ? '修改' : '添加'}
             onOk={this.handleOk} onCancel={this.handleCancel} >
                 {this.state.modalShow ? <InForm ref="form" isEdit={this.state.isEdit} item={this.state.item}/> : '' }

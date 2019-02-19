@@ -46,7 +46,7 @@ const commonConfig = {
 		filename: "js/[name].[chunkhash:5].js",
 		// 用import()按需加载 https://doc.webpack-china.org/module-methods/#import-
 		chunkFilename: "js/[name].[chunkhash:5].js",
-		publicPath: process.env.NODE_ENV == 'development' ? "/" : './',
+		publicPath: process.env.NODE_ENV == 'development' ? "/" : '/paiban/',
 	},
 	module: {
 		postLoaders: [{

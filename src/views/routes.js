@@ -8,6 +8,7 @@ import UserMange from "bundle-loader?lazy&name=home!../pages/UserMange/index";
 import Login from "bundle-loader?lazy&name=home!../pages/Login/index";
 import Vacation from "bundle-loader?lazy&name=home!../pages/Vacation/index";
 import LeaveMange from 'bundle-loader?lazy&name=home!../pages/LeaveMange/index'
+import ResetPwd from 'bundle-loader?lazy&name=home!../pages/ResetPwd/index'
 import { bundle } from "../components/Bundle";
 
 const Empty = props => <div><Spin />Loading</div>;
@@ -19,8 +20,10 @@ const UserM = bundle(Empty, UserMange, { type: "callback" });
 const Logind = bundle(Empty, Login, { type: "callback" });
 const Vk = bundle(Empty, Vacation, { type: "callback" });
 const LM = bundle(Empty, LeaveMange, { type: "callback" });
+const RP = bundle(Empty, ResetPwd, { type: "callback" });
 const routes = [
 	{ type: "redirect", exact: true, strict: true, from: "/", to: "/dutycalendar" },
+	{ type: "route", path: "/resetPwd", component: RP },
 	{ type: "route", path: "/login", component: Logind },
 	{ type: "route", path: "/dutycalendar", component: DutyC },
 	{ type: "route", path: "/typesetplan", component: TypeS },
