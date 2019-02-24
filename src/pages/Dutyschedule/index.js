@@ -11,6 +11,7 @@ class Dutyschedule extends Component {
 		loading: false,
 		options: [], //计划归属选项
 		selectValue: '',
+		years: [],
 		params: {
 			page: 1,
 			pageSize: 10,
@@ -121,15 +122,29 @@ class Dutyschedule extends Component {
 	}
 
 	// 生成前后20年
-	createYears = (num = 20) => {
-		let myDate= new Date(); 
-		let startYear=myDate.getFullYear()- num;//起始年份 
-		let endYear=myDate.getFullYear()+ num;//结束年份 
-		let years = [];
-		for (var i=startYear;i<=endYear;i++) { 
-			years.push(String(i))
-		} 
-		return years
+	// createYears = (num = 20) => {
+	// 	let myDate= new Date(); 
+	// 	let startYear=myDate.getFullYear()- num;//起始年份 
+	// 	let endYear=myDate.getFullYear()+ num;//结束年份 
+	// 	let years = [];
+	// 	for (var i=startYear;i<=endYear;i++) { 
+	// 		years.push(String(i))
+	// 	} 
+	// 	return years
+	// }
+
+	// 获取有排班的年份
+	getYears = () => {
+		return $post('/paiban/api/atd/attendance/v1/attendanceYears').done(res => {
+			if(res.status == 200){
+				let params = JSON.parse(JSON.stringify(this.state.params));
+				res.body.years.length > 0 && (params.year = String(res.body.years[0]));
+				this.setState({
+					years: res.body.years.map(year => String(year)),
+					params
+				})
+			}
+		})
 	}
 
 	// 获取计划归属
@@ -154,7 +169,9 @@ class Dutyschedule extends Component {
 
 	async componentDidMount(){
 		await this.getBelongIds();
+		await this.getYears();
 		this.getList();
+		console.log(this)
 	}
 	render() {
 		const { list, loading, selectValue, options } = this.state;
@@ -181,7 +198,7 @@ class Dutyschedule extends Component {
 					<FormItem label="年度">
 						<Select value={ this.state.params.year } style={{ width: 200 }} onSelect={this.yearChange}>
 							{
-								this.createYears().map(year => <Option key={year} value={year}>{year}</Option>)
+								this.state.years.map(year => <Option key={year} value={year}>{year}</Option>)
 							}
 						</Select>
 					</FormItem>

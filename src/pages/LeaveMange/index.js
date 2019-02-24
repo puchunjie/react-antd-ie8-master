@@ -27,7 +27,8 @@ class LeaveMange extends Component {
             id: ''
         },
         rangDate: [],
-        selectKey: []
+		selectKey: [],
+		reason: ''
     }
 
 
@@ -70,6 +71,10 @@ class LeaveMange extends Component {
 			key: "3",
 			dataIndex: 'endDate',
 			title: "请假结束日期"
+		},{
+			key: "5",
+			dataIndex: 'reason',
+			title: "休假原因"
 		},{
 			key: "4",
 			title: "操作",
@@ -176,7 +181,8 @@ class LeaveMange extends Component {
 			userName: this.state.user.text ,
 			userId: Number(this.state.user.code),
 			beginDate: this.state.rangDate[0], 
-			endDate: this.state.rangDate[1]
+			endDate: this.state.rangDate[1],
+			reason: this.state.reason
 		}).done(res => {
 			if(res.status == 200){
 				message.success('添加成功！');
@@ -192,7 +198,13 @@ class LeaveMange extends Component {
         this.setState({
             rangDate: dateString
         })
-    }
+	}
+	
+	reasonChange = (e) => {
+        this.setState({
+            reason: e.target.value
+        })
+	}
 
     goNext = () => {
         this.setState({step1: false})
@@ -282,6 +294,9 @@ class LeaveMange extends Component {
         				</FormItem>
 						<FormItem {...formItemLayout} label="请假时间" >
                             <RangePicker value={this.state.rangDate} onChange={this.rangDateChange} />
+        				</FormItem>
+						<FormItem {...formItemLayout} label="请假原因" >
+							<Input type="textarea" rows={4} value={this.state.reason} onChange={this.reasonChange} />
         				</FormItem>
 					</Form>
 					}

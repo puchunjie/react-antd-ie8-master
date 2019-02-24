@@ -36,7 +36,9 @@ class UserMange extends Component {
             }
         },
         popShow: false,
-        loading: false
+        loading: false,
+        leaderNum: 0,
+        employeeNum: 0
     }
 
     //表头
@@ -182,7 +184,18 @@ class UserMange extends Component {
 			}
 		}).always(e => this.setState({
 			loading: false
-		}));
+        }));
+        
+        $post('/paiban/api/user/v1/userNum').done(res => {
+			if(res.status == 200){
+				this.setState({
+					leaderNum: res.body.leaderNum,
+					employeeNum: res.body.employeeNum
+				})
+			}
+		}).always(e => this.setState({
+			loading: false
+        }));
     }
 
     //获取部门列表
@@ -383,6 +396,7 @@ class UserMange extends Component {
                 </FormItem>
                 <Button type="primary" onClick={this.getUsers} htmlType="submit">查询</Button>
             </Form>
+            <div style={{marginTop:20}}>领导： {this.state.leaderNum}人，  干部： {this.state.employeeNum}人</div>
             <Table style={{ marginTop: 20 }} rowKey='planId' bordered dataSource={list} columns={this.cols(list)} 
             pagination={this.pagination(this.state.total,this.state.params)} />
         </div>
