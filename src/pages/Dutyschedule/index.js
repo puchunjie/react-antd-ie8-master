@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import "./style.less";
 import {  Button, Spin, Select, Table,Form, Input } from "antd";
 import { $get, $post, getCookie, setCookie } from "../../utils/auth";
+import { NAMES } from '../../utils/configs'
 const Option = Select.Option;
 const FormItem = Form.Item;
 
@@ -21,6 +22,7 @@ class Dutyschedule extends Component {
 			year: String(new Date().getFullYear())
 	
 		},
+		NAMES: NAMES,
 		total: 0
 	};
 
@@ -39,7 +41,7 @@ class Dutyschedule extends Component {
 					list: res.body ? res.body.records.map(item => {
 						return {
 							userName: item.userName,
-							position: item.atdUserType === 100 ? '领导' : '干部',
+							position: item.atdUserType === 100 ? NAMES.leader : NAMES.staff,
 							workingAtdDays: Number(item.workingAtdDays),
 							weekendAtdDays: Number(item.weekendAtdDays),
 							vacationAtdDays: Number(item.vacationAtdDays)
@@ -188,8 +190,8 @@ class Dutyschedule extends Component {
 					<FormItem label="职位">
 						<Select value={ this.state.params.atdUserType	 } style={{ width: 200 }} onSelect={this.handleChange}>
 							<Option key="" value="">全部</Option>
-							<Option key="100" value="100">领导</Option>
-							<Option key="101" value="101">干部</Option>
+							<Option key="100" value="100">{ this.state.NAMES.leader }</Option>
+							<Option key="101" value="101">{ this.state.NAMES.staff }</Option>
 						</Select>
 					</FormItem>
 					<FormItem label="姓名">

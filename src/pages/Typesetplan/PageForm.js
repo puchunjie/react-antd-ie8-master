@@ -1,8 +1,9 @@
 import React, { Component } from "react";
 import df from 'dateformat-util'
 import { $post, $get } from "../../utils/auth";
+import { NAMES } from '../../utils/configs'
 import "./style.less";
-import { DatePicker, Button, Select, message, Modal, Form, Input, InputNumber, Tag, Popover } from "antd";
+import { DatePicker, Button, Select, message, Modal, Form, Input, InputNumber, Tag, Popover, Transfer } from "antd";
 import UserTree from '../../components/UserTree'
 const Option = Select.Option;
 const RangePicker = DatePicker.RangePicker;
@@ -86,24 +87,24 @@ class PageForm extends Component {
 				trigger: ['onChange']
 			}]
 		});
-		const leaderNumProps = getFieldProps('leaderNum', {
-			validate: [{
-				rules: [{
-					required: true,
-					message: '请输入人数'
-				}],
-				trigger: ['onChange']
-			}]
-		});
-		const employeeNumProps = getFieldProps('employeeNum', {
-			validate: [{
-				rules: [{
-					required: true,
-					message: '请输入人数'
-				}],
-				trigger: ['onChange']
-			}]
-        });
+		// const leaderNumProps = getFieldProps('leaderNum', {
+		// 	validate: [{
+		// 		rules: [{
+		// 			required: true,
+		// 			message: '请输入人数'
+		// 		}],
+		// 		trigger: ['onChange']
+		// 	}]
+		// });
+		// const employeeNumProps = getFieldProps('employeeNum', {
+		// 	validate: [{
+		// 		rules: [{
+		// 			required: true,
+		// 			message: '请输入人数'
+		// 		}],
+		// 		trigger: ['onChange']
+		// 	}]
+        // });
         const planUsersProps = getFieldProps('planUsers', {
             rules: [{
                     required: true,
@@ -165,40 +166,6 @@ class PageForm extends Component {
                     >
                         <RangePicker {...rangDateProps} />
                     </FormItem>
-            
-                    <FormItem
-                        {...formItemLayout}
-                        label="每日值班领导数"
-                        hasFeedback
-                    >
-                        <Select {...leaderNumProps} style={{ width: 650 }}>
-                            <Option key="1" value="1">1人</Option>
-                            <Option key="2" value="2">2人</Option>
-                            <Option key="3" value="3">3人</Option>
-                            <Option key="4" value="4">4人</Option>
-                            <Option key="5" value="5">5人</Option>
-                            <Option key="6" value="6">6人</Option>
-                            <Option key="7" value="7">7人</Option>
-                            <Option key="8" value="8">8人</Option>
-                        </Select>
-                    </FormItem>
-            
-                    <FormItem
-                        {...formItemLayout}
-                        label="每日值班干部数"
-                        hasFeedback
-                    >
-                        <Select {...employeeNumProps} style={{ width: 650 }}>
-                            <Option key="1" value="1">1人</Option>
-                            <Option key="2" value="2">2人</Option>
-                            <Option key="3" value="3">3人</Option>
-                            <Option key="4" value="4">4人</Option>
-                            <Option key="5" value="5">5人</Option>
-                            <Option key="6" value="6">6人</Option>
-                            <Option key="7" value="7">7人</Option>
-                            <Option key="8" value="8">8人</Option>
-                        </Select>
-                    </FormItem>
                     <FormItem
                         {...formItemLayout}
                         label="参与值班人员"
@@ -222,15 +189,24 @@ class out extends Component {
         holdayShow: false,
         params: {},
         selecteds: [],
+        targetKeys: [],
         activeUser: {},
         activeIndex: null,
+        leaderNum: '1',
+        employeeNum: '1',
+        errTip: '',
+        tipDesc: '',
+        needLear: 0,
+        needStaff: 0,
+        NAMES: NAMES,
+        titles: [NAMES.leader,NAMES.staff ]
     };
      // 打开排班计划面板
 	showModal = () => {
 		this.setState({addShow: true})
     }
     modalCancel = () => {
-        this.setState({addShow: false,step1: true, params: {},selecteds: []})
+        this.setState({addShow: false,step1: true, params: {},selecteds: [], targetKeys: []})
         this.refs.form.resetFields();
     }
 
@@ -240,45 +216,83 @@ class out extends Component {
 			if (!!errors) {
 				return false;
 			}else{
-                let { belongName, name, leaderNum, employeeNum, rangDate, planUsers,belongId,belongOldName } = values;
+                let { belongName, name, rangDate, planUsers,belongId,belongOldName } = values;
+                planUsers = planUsers.map(item => {
+                    return {
+                        ...item,
+                        uuid: item.code + '_' + item.text,
+                        label: item.text + (item.attributes.atdUserType == 100 ? `  (${NAMES.leader})` : `  (${NAMES.staff})`)
+                    }
+                })
+                let targetKeys = planUsers.filter(item => item.attributes.atdUserType == 101).map(item => item.uuid);
                 let params = {
                     belongId: belongName == belongOldName ? belongId : undefined,
                     belongName,
                     name,
-                    leaderNum: Number(leaderNum),
-                    employeeNum: Number(employeeNum),
+                    leaderNum: 0,
+                    employeeNum: 0,
                     beginDate: df.format(rangDate[0], 'yyyy-MM-dd'),
                     endDate: df.format(rangDate[1], 'yyyy-MM-dd'),
-                    planUsers: planUsers.map(item => {
-                        return {
-                            userId: Number(item.code),
-                            userType: item.attributes.atdUserType
-                        }
-                    }),
+                    planUsers: [],
                     planVacations: []
 
-                }
-                let users = planUsers.map(item => {
-                    let data = this.state.selecteds.find(el => el.id == item.id)
-                    if (data) {
-                        return data
-                    } else {
-                        return {
-                            ...item,
-                            selected: false,
-                            days: []
-                        }
-                    }
-                });
-                
+                }   
+                let staff = targetKeys.length;
+                let leader = planUsers.length - staff;
+                let days = this.datedifference(params.beginDate,params.endDate);
                 this.setState({ 
                     step1: false,
                     params,
-                    selecteds: users
+                    selecteds: planUsers,
+                    targetKeys,
+                    ...this.computedMothod(leader,staff,days)
                 })
+
+                setTimeout(() => {
+                    console.log(this.state)
+                },1000)
             }
             
 		});
+    }
+
+
+    datedifference = (sDate1, sDate2) => {    //sDate1和sDate2是2006-12-18格式  
+        var dateSpan,
+            tempDate,
+            iDays;
+        sDate1 = Date.parse(sDate1);
+        sDate2 = Date.parse(sDate2);
+        dateSpan = sDate2 - sDate1;
+        dateSpan = Math.abs(dateSpan);
+        iDays = Math.floor(dateSpan / (24 * 3600 * 1000));
+        return iDays + 1
+    };
+
+    // 计算公式
+    computedMothod = (leader = 0, staff = 0, days = 0) => {
+        let leaderEveryDay = parseInt(leader/days);
+        let overLeader = leader%days;
+        let staffEveryDay = Math.ceil((staff + overLeader)/days);
+        let leaderTip = '',staffTip= '';
+
+        if(leaderEveryDay < 1){
+            leaderTip = this.state.NAMES.leader + "人数不足"
+        }
+
+        if(staffEveryDay < 1){
+            staffTip = this.state.NAMES.staff + '人数不足'
+        }
+        let outLeader = leaderEveryDay < 1 ? 1 : leaderEveryDay;
+        let outStaff = staffEveryDay < 1 ? 1 : staffEveryDay;
+        return {
+            leaderNum: String(outLeader),
+            employeeNum: String(outStaff),
+            errTip: (leaderTip + staffTip) == '' ? '' : `(${leaderTip}${staffTip})`,
+            tipDesc: `每日${this.state.NAMES.leader}：${outLeader}人，每日${this.state.NAMES.staff}：${outStaff}人,(需要${this.state.NAMES.leader}：${outLeader * days}人、${this.state.NAMES.staff}：${outStaff * days}人)   `,
+            needLear: outLeader * days,
+            needStaff: outStaff * days
+        }
     }
 
     goBack = () => {
@@ -287,8 +301,26 @@ class out extends Component {
 
     // 添加计划
     addPlane = params => {
+        // 人数是否满足
+        let staffNum = this.state.targetKeys.length;
+        let leaderNum = this.state.selecteds.length - staffNum;
+        if(leaderNum < this.state.needLear || staffNum < this.state.needStaff){
+            message.error('人员不满足要求，请按提示手动调整');
+            return 
+        }
+
+        let p = JSON.parse(JSON.stringify(params));
+        p.leaderNum = p.leaderNum == null ? this.state.leaderNum : p.leaderNum;
+        p.employeeNum = p.employeeNum == null ? this.state.employeeNum : p.employeeNum;
+        p.planUsers = this.state.selecteds.map(item => {
+            return {
+                userId: item.code,
+                userType: this.state.targetKeys.some(e => e == item.code + '_' + item.text) ? 101 : 100
+            }
+        })
+
         this.setState({loading: true})
-        $post('/paiban/api/atd/attendance-plan/v1/add',params).done(res => {
+        $post('/paiban/api/atd/attendance-plan/v1/add',p).done(res => {
 			if(res.status == 200){
                 this.setState({addShow: false,step1: false});
                 this.refs.form.resetFields();
@@ -302,48 +334,16 @@ class out extends Component {
         })
     }
 
-    tagClick = (data,i) => {
+
+    employeeChange = e =>{
         this.setState({
-            activeUser: data,
-            activeIndex: i,
-            holdayShow: true
+            employeeNum: e.target.value
         })
     }
 
-    addDay = (value, dateString) => {
-        let days = this.state.activeUser.days || [];
-        days.push(dateString);
-        let activeUser = Object.assign({ days:days },this.state.activeUser)
+    leaderNum = e =>{
         this.setState({
-            activeUser
-        })
-    }
-
-    delDay = i => {
-        let days = this.state.activeUser.days || [];
-        days.splice(i,1);
-        let activeUser = Object.assign({ days:days },this.state.activeUser);
-        this.setState({
-            activeUser
-        });
-    }
-
-    dayOff = () => {
-        this.setState({
-            holdayShow: false,
-            activeIndex: null,
-            activeUser: {}
-        })
-    }
-
-    holdayOk = () => {
-        let selecteds = JSON.parse(JSON.stringify(this.state.selecteds));
-        selecteds[this.state.activeIndex] = this.state.activeUser;
-        this.setState({
-            selecteds,
-            holdayShow: false,
-            activeIndex: null,
-            activeUser: {}
+            leaderNum: e.target.value
         })
     }
 
@@ -351,13 +351,13 @@ class out extends Component {
     submitPlan = () => {
         this.refs.form.validateFields((errors, values) => {
             if(!errors){
-                let { belongName, name, leaderNum, employeeNum, rangDate, planUsers,belongId,belongOldName } = values;
+                let { belongName, name, rangDate, planUsers,belongId,belongOldName } = values;
                 let params = {
                     belongId: belongName == belongOldName ? belongId : undefined,
                     belongName,
                     name,
-                    leaderNum: Number(leaderNum),
-                    employeeNum: Number(employeeNum),
+                    leaderNum: Number(this.leaderNum),
+                    employeeNum: Number(this.employeeNum),
                     beginDate: df.format(rangDate[0], 'yyyy-MM-dd'),
                     endDate: df.format(rangDate[1], 'yyyy-MM-dd'),
                     planUsers: planUsers.map(item => {
@@ -376,46 +376,117 @@ class out extends Component {
 		});
         
     }
+
+    renderItem = (item) => {
+        return {
+            label: item.label,  // for displayed item
+            value: item.uuid,   // for title and filter matching
+        };
+      }
+
+    transferChange = (targetKeys, direction, moveKeys) => {
+        this.setState({ targetKeys });
+    }
+
+    leaderChange = value => {
+        this.setState({
+            leaderNum: value
+        })
+    }
+
+    employeeChange = value => {
+        this.setState({
+            employeeNum: value
+        })
+    }
     
     render() {
+        const formItemLayout = {
+			labelCol: {
+				span: 5
+			},
+			wrapperCol: {
+				span: 17
+			},
+        };
         return <div>
                 <Button type="primary" className="add-btn" onClick={this.showModal}>添加排班计划</Button>
                 <Modal ref="modal" width={ 1100 } visible={this.state.addShow} 
                 title={ !this.state.step1 ? '添加排期计划' : '添加排期计划' } closable={false}
                 footer={[
                     <Button key="cancel" type="ghost" size="large" onClick={this.modalCancel}>取 消</Button>,
-                    // <Button className={!this.state.step1 ? 'hide': '' } key="next" type="primary" size="large" onClick={this.modalOk}>
-                    //   下一步
-                    // </Button>,
-                    // <Button className={this.state.step1 ? 'hide': '' } key="back" type="primary" size="large" onClick={this.goBack}>
-                    // 上一步
-                    // </Button>,
-                    <Button key="submit" type="primary" size="large" loading={this.state.loading} onClick={this.submitPlan}>
+                    <Button className={!this.state.step1 ? 'hide': '' } key="next" type="primary" size="large" onClick={this.modalOk}>
+                      下一步
+                    </Button>,
+                    <Button className={this.state.step1 ? 'hide': '' } key="back" type="primary" size="large" onClick={this.goBack}>
+                    上一步
+                    </Button>,
+                    <Button className={this.state.step1 ? 'hide': '' } key="submit" type="primary" size="large" loading={this.state.loading} onClick={this.submitPlan}>
                       添加并排班
                     </Button>
                   ]}>
-                  <PageForm ref="form"/>
-                    {/* <div className={!this.state.step1 ? 'hide': '' }><PageForm ref="form"/></div>
+                  {/* <PageForm ref="form"/> */}
+                    <div className={!this.state.step1 ? 'hide': '' }><PageForm ref="form"/></div>
                     <div className={this.state.step1 ? 'hide': '' }>
-                    {
-                        // onClick={this.tagClick.bind(this,tag,i)}
-                        this.state.selecteds.map((tag,i) => <Tag key={i} color={tag.days.length>0 ? 'red' : ''}>
-                        { tag.text } { tag.days.length > 0 ? `(${tag.days.length}天)` : '' }</Tag>)
-                    }
-                    </div> */}
+                    <Form>
+                        <span style={{display:'block',width:'100%',textAlign:'center',color:'red'}}>
+                        { this.state.tipDesc + this.state.errTip  }
+                        </span>
+                    <FormItem
+                        {...formItemLayout}
+                        label={ '每日值班' + this.state.NAMES.leader + '数'}
+                        hasFeedback
+                    >
+                        <Select value={this.state.leaderNum} onChange={this.leaderChange} style={{ width: 650 }}>
+                            <Option key="1" value="1">1人</Option>
+                            <Option key="2" value="2">2人</Option>
+                            <Option key="3" value="3">3人</Option>
+                            <Option key="4" value="4">4人</Option>
+                            <Option key="5" value="5">5人</Option>
+                            <Option key="6" value="6">6人</Option>
+                            <Option key="7" value="7">7人</Option>
+                            <Option key="8" value="8">8人</Option>
+                        </Select>
+                    </FormItem>
+            
+                    <FormItem
+                        {...formItemLayout}
+                        label={ '每日值班' + this.state.NAMES.staff + '数'}
+                        hasFeedback
+                    >
+                        <Select value={this.state.employeeNum} onChange={this.employeeChange} style={{ width: 650 }}>
+                            <Option key="1" value="1">1人</Option>
+                            <Option key="2" value="2">2人</Option>
+                            <Option key="3" value="3">3人</Option>
+                            <Option key="4" value="4">4人</Option>
+                            <Option key="5" value="5">5人</Option>
+                            <Option key="6" value="6">6人</Option>
+                            <Option key="7" value="7">7人</Option>
+                            <Option key="8" value="8">8人</Option>
+                        </Select>
+                    </FormItem>
+                    <FormItem
+                        {...formItemLayout}
+                        label="调整人员"
+                        hasFeedback
+                    >
+                        <Transfer
+                            dataSource={this.state.selecteds}
+                            rowKey={record => record.uuid}
+                            listStyle={{
+                            width: 300,
+                            height: 300,
+                            }}
+                            titles={this.state.titles}
+                            targetKeys={this.state.targetKeys}
+                            onChange={this.transferChange}
+                            render={this.renderItem}
+                        />
+                    </FormItem>
+                    </Form>
+                    
+                    </div>
 			    </Modal>
-                
-                {/* <Modal title="添加休假"  visible={this.state.holdayShow} onOk={this.holdayOk} onCancel={this.dayOff}>
-                    {
-                        this.state.activeUser.days && this.state.activeUser.days.map((day,i) => {
-                            return <div key={i} style={{marginBottom:10}}><DatePicker value={day} disabled/>&nbsp;&nbsp;&nbsp;
-                            <Button type="primary" size="small" onClick={this.delDay.bind(this,i)}>删除</Button></div>
-                        })
-                    }
-                    <DatePicker value='' onChange={this.addDay}/>
-                </Modal> */}
-
-                
             </div>
     }
 }

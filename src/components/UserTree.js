@@ -5,6 +5,7 @@ import {
     TreeSelect
 } from 'antd';
 import { $post } from "../utils/auth";
+import { NAMES } from '../utils/configs'
 import './userTree.less'
 const SHOW_PARENT = TreeSelect.SHOW_PARENT;
 const flatten = (arr) => {
@@ -61,7 +62,8 @@ class UserTree extends Component {
                     return arr.map(item => {
                         let data = Object.assign({},item);
                         data.value = data.id;
-                        data.label = data.text;
+                        let desc = data.attributes.atdUserType ? data.attributes.atdUserType == 100 ? `  (${NAMES.leader})` : `  (${NAMES.staff})` : '';
+                        data.label = data.text + desc;
                         data.key = data.id;
                         data.children = modfiyTree(data.children);
                         return data

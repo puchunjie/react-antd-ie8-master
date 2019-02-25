@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import "./style.less";
 import { DatePicker, Button, Spin, Select, Table, Modal, message,Form, Input, Popover } from "antd";
 import { $get, $post, getCookie, setCookie } from "../../utils/auth";
+import { NAMES } from '../../utils/configs'
 import PageForm from './PageForm';
 const Option = Select.Option;
 const confirm = Modal.confirm;
@@ -120,7 +121,7 @@ class Typesetplan extends Component {
 			key: "4",
 			title: "参与人员",
 			render: (text, record) => (
-				<span>领导：<a onClick={this.showUser.bind(this,record,true)}>{record.leaderCount }</a>人，干部：<a onClick={this.showUser.bind(this,record,false)}>{record.employeeCount}</a>人</span>
+				<span>{ NAMES.leader }：<a onClick={this.showUser.bind(this,record,true)}>{record.leaderCount }</a>人，{ NAMES.staff }：<a onClick={this.showUser.bind(this,record,false)}>{record.employeeCount}</a>人</span>
 			)
 		},{
 			key: "5",

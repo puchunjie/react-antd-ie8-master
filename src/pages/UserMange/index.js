@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import './style.less'
 import { DatePicker, Button, Icon, Spin, Calendar, Select, Table, Modal,Upload, message,Form, Input, Radio, Popover } from "antd";
 import { $get, $post, getCookie } from "../../utils/auth";
+import { NAMES } from '../../utils/configs'
 const Option = Select.Option;
 const confirm = Modal.confirm;
 const FormItem = Form.Item;
@@ -10,6 +11,7 @@ const MonthPicker = DatePicker.MonthPicker;
 
 class UserMange extends Component {
     state = {
+        NAMES: NAMES,
         list: [], 
 		loading: false,
 		options: [],
@@ -387,8 +389,8 @@ class UserMange extends Component {
                 <FormItem label="职位">
                     <Select value={ this.state.params.atdUserType } style={{ width: 100 }} onSelect={this.handleChange}>
                         <Option key="" value="">全部</Option>
-                        <Option key="100" value="100">领导</Option>
-                        <Option key="101" value="101">干部</Option>
+                        <Option key="100" value="100">{ this.state.NAMES.leader }</Option>
+                        <Option key="101" value="101">{ this.state.NAMES.staff }</Option>
                     </Select>
                 </FormItem>
                 <FormItem label="姓名">
@@ -396,7 +398,7 @@ class UserMange extends Component {
                 </FormItem>
                 <Button type="primary" onClick={this.getUsers} htmlType="submit">查询</Button>
             </Form>
-            <div style={{marginTop:20}}>领导： {this.state.leaderNum}人，  干部： {this.state.employeeNum}人</div>
+            <div style={{marginTop:20}}>{ this.state.NAMES.leader }： {this.state.leaderNum}人，  { this.state.NAMES.staff }： {this.state.employeeNum}人</div>
             <Table style={{ marginTop: 20 }} rowKey='planId' bordered dataSource={list} columns={this.cols(list)} 
             pagination={this.pagination(this.state.total,this.state.params)} />
         </div>
@@ -427,8 +429,8 @@ class UserMange extends Component {
 
                 <FormItem label="用户类型" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }}>
                     <Select  value={ this.state.userParams.atdUserType } onSelect={this.handleChangeUserType}>
-                        <Option key="100" value="100">领导</Option>
-                        <Option key="101" value="101">干部</Option>
+                        <Option key="100" value="100">{ this.state.NAMES.leader }</Option>
+                        <Option key="101" value="101">{ this.state.NAMES.staff }</Option>
                     </Select>
                 </FormItem>
 
