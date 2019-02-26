@@ -224,7 +224,6 @@ class out extends Component {
                         label: item.text + (item.attributes.atdUserType == 100 ? `  (${NAMES.leader})` : `  (${NAMES.staff})`)
                     }
                 })
-                let targetKeys = planUsers.filter(item => item.attributes.atdUserType == 101).map(item => item.uuid);
                 let params = {
                     belongId: belongName == belongOldName ? belongId : undefined,
                     belongName,
@@ -237,9 +236,23 @@ class out extends Component {
                     planVacations: []
 
                 }   
-                let staff = targetKeys.length;
-                let leader = planUsers.length - staff;
+                // 自动计算出合适的人员分配
                 let days = this.datedifference(params.beginDate,params.endDate);
+                let staff = planUsers.filter(item => item.attributes.atdUserType == 101).map(item => item.uuid).length;
+                let leader = planUsers.length - staff;
+                let obj = this.computedMothod(leader,staff,days);
+                let targetKeys = planUsers.filter(item => item.attributes.atdUserType == 101).map(item => item.uuid);
+
+
+                if(leader > obj.needLear){
+                    let leaderKeys = planUsers.filter(item => item.attributes.atdUserType == 100).map(item => item.uuid);
+                    let bianzhiNum = leader - obj.needLear;
+                    let bianzhi = leaderKeys.filter((item,i) => i > (leaderKeys.length - 1 - bianzhiNum));
+                    leaderKeys.length = leaderKeys.length - bianzhiNum;
+                    targetKeys.push(...bianzhi);
+                }
+
+                
                 this.setState({ 
                     step1: false,
                     params,
@@ -279,19 +292,30 @@ class out extends Component {
         if(leaderEveryDay < 1){
             leaderTip = this.state.NAMES.leader + "人数不足"
         }
-
+        // 如果计算出的值班干部数=0，提示"干部人数不足"
         if(staffEveryDay < 1){
             staffTip = this.state.NAMES.staff + '人数不足'
         }
+        //干部数=1，干部数 * 值班天数 > 选择的值班干部数，提示"干部人数不足"
+        if(staffEveryDay == 1 && (staffEveryDay * days) > staff){
+            staffTip = this.state.NAMES.staff + '人数不足'
+        }
+        //干部数>1，（干部数-1）* 值班天数 > 选择的值班干部数，提示"干部人数不足"
+        if(staffEveryDay > 1 && ((staffEveryDay - 1) * days) > staff){
+            staffTip = this.state.NAMES.staff + '人数不足'
+        }
+
+
         let outLeader = leaderEveryDay < 1 ? 1 : leaderEveryDay;
         let outStaff = staffEveryDay < 1 ? 1 : staffEveryDay;
+        let needTotalStaff = outStaff > 1 ? ((outStaff - 1) * days) + 1 : outStaff * days;
         return {
-            leaderNum: String(outLeader),
-            employeeNum: String(outStaff),
+            leaderNum: String(outLeader), //每日值班领导数
+            employeeNum: String(outStaff), //每日值班干部数
             errTip: (leaderTip + staffTip) == '' ? '' : `(${leaderTip}${staffTip})`,
-            tipDesc: `每日${this.state.NAMES.leader}：${outLeader}人，每日${this.state.NAMES.staff}：${outStaff}人,(需要${this.state.NAMES.leader}：${outLeader * days}人、${this.state.NAMES.staff}：${outStaff * days}人)   `,
+            tipDesc: `每日${this.state.NAMES.leader}：${outLeader}人，每日${this.state.NAMES.staff}：${outStaff}人,(至少需要${this.state.NAMES.leader}：${outLeader * days}人、${this.state.NAMES.staff}：${needTotalStaff}人)   `,
             needLear: outLeader * days,
-            needStaff: outStaff * days
+            needStaff: needTotalStaff
         }
     }
 
