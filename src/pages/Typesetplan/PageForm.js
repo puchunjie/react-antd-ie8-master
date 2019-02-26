@@ -206,8 +206,8 @@ class out extends Component {
 		this.setState({addShow: true})
     }
     modalCancel = () => {
-        this.setState({addShow: false,step1: true, params: {},selecteds: [], targetKeys: []})
         this.refs.form.resetFields();
+        this.setState({addShow: false,step1: true, params: {},selecteds: [], targetKeys: []})
     }
 
     
@@ -260,10 +260,6 @@ class out extends Component {
                     targetKeys,
                     ...this.computedMothod(leader,staff,days)
                 })
-
-                setTimeout(() => {
-                    console.log(this.state)
-                },1000)
             }
             
 		});
@@ -346,8 +342,7 @@ class out extends Component {
         this.setState({loading: true})
         $post('/paiban/api/atd/attendance-plan/v1/add',p).done(res => {
 			if(res.status == 200){
-                this.setState({addShow: false,step1: false});
-                this.refs.form.resetFields();
+                this.modalCancel();
                 this.props.GetList()
                 message.success('添加成功');
 			}else{
@@ -449,10 +444,14 @@ class out extends Component {
                       添加并排班
                     </Button>
                   ]}>
-                  {/* <PageForm ref="form"/> */}
-                    <div className={!this.state.step1 ? 'hide': '' }><PageForm ref="form"/></div>
+                    <div className={!this.state.step1 ? 'hide': '' }>
+                    {
+                        this.state.addShow ? <PageForm ref="form"/> : ''
+                    }
+                    </div>
                     <div className={this.state.step1 ? 'hide': '' }>
-                    <Form>
+                    {
+                        this.state.addShow ? <Form>
                         <span style={{display:'block',width:'100%',textAlign:'center',color:'red'}}>
                         { this.state.tipDesc + this.state.errTip  }
                         </span>
@@ -507,7 +506,9 @@ class out extends Component {
                             render={this.renderItem}
                         />
                     </FormItem>
-                    </Form>
+                    </Form> : ''
+                    }
+                    
                     
                     </div>
 			    </Modal>
