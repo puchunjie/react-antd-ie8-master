@@ -44,6 +44,10 @@ class PageForm extends Component {
             visible
         });
     }
+
+    disabledDate = (value) => {
+        return value.time < (new Date().getTime() - (24*60*60*1000))
+    }
     
     componentDidMount(){
         this.getBelongIds();
@@ -164,7 +168,7 @@ class PageForm extends Component {
                         label="时间范围"
                         hasFeedback
                     >
-                        <RangePicker {...rangDateProps} />
+                        <RangePicker disabledDate={this.disabledDate} {...rangDateProps} />
                     </FormItem>
                     <FormItem
                         {...formItemLayout}
@@ -315,6 +319,17 @@ class out extends Component {
         }
     }
 
+    changeComputed = (leaderNum,employeeNum) => {
+        let days = this.datedifference(this.state.params.beginDate,this.state.params.endDate)
+        let needLear = leaderNum * days;
+        let needStaff = employeeNum > 1 ? (employeeNum - 1) * days + 1 : days;
+        return {
+            needLear,
+            needStaff,
+            tipDesc: `每日${this.state.NAMES.leader}：${leaderNum}人，每日${this.state.NAMES.staff}：${employeeNum}人,(至少需要${this.state.NAMES.leader}：${needLear}人、${this.state.NAMES.staff}：${needStaff}人)   `,
+        }
+    }
+
     goBack = () => {
         this.setState({ step1: true });
     }
@@ -354,17 +369,18 @@ class out extends Component {
     }
 
 
-    employeeChange = e =>{
-        this.setState({
-            employeeNum: e.target.value
-        })
-    }
+    // employeeChange = e =>{
+    //     this.setState({
+    //         employeeNum: e.target.value,
+    //         ...this.changeComputed()
+    //     })
+    // }
 
-    leaderNum = e =>{
-        this.setState({
-            leaderNum: e.target.value
-        })
-    }
+    // leaderNum = e =>{
+    //     this.setState({
+    //         leaderNum: e.target.value
+    //     })
+    // }
 
     // 提交计划表单
     submitPlan = () => {
@@ -409,13 +425,15 @@ class out extends Component {
 
     leaderChange = value => {
         this.setState({
-            leaderNum: value
+            leaderNum: value,
+            ...this.changeComputed(value,this.state.employeeNum)
         })
     }
 
     employeeChange = value => {
         this.setState({
-            employeeNum: value
+            employeeNum: value,
+            ...this.changeComputed(this.state.leaderNum,value)
         })
     }
     
@@ -453,7 +471,7 @@ class out extends Component {
                     {
                         this.state.addShow ? <Form>
                         <span style={{display:'block',width:'100%',textAlign:'center',color:'red'}}>
-                        { this.state.tipDesc + this.state.errTip  }
+                        { this.state.tipDesc  }
                         </span>
                     <FormItem
                         {...formItemLayout}
