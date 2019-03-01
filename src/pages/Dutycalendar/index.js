@@ -79,15 +79,16 @@ class Dutycalendar extends Component {
 			let inproee = data.atdUsers.filter(item => item.userType == 101).map(item => {
 				return <Tag color="green" key={item.userId}  onClick={ this.tagClick.bind(this,item) }>{ item.userName }</Tag>
 			});
+			let voication = <p className="v-span">{data.dateRemark && data.dateRemark == '未排班' ? '' : data.dateRemark}</p>;
 			if(data.atdDateType == -1){
-				return <Alert
+				return <div className="c-item">{voication}<Alert
 				message="未排班"
 				description="暂未排班"
 				type="warning"
 				showIcon
-			  />
+			  /></div>
 			}else{
-				return <div>{ leaders }{ inproee }</div>
+				return <div className="c-item">{voication}{ leaders }{ inproee }</div>
 			}
 		}
 		
@@ -118,7 +119,8 @@ class Dutycalendar extends Component {
 			}
 		});
 		this.setState({
-			targetUsers
+			targetUsers,
+			atdDate: date
 		})
 	}
 
@@ -152,7 +154,7 @@ class Dutycalendar extends Component {
 
 		
 		$post('/paiban/api/atd/attendance/v1/user/swap',{
-			atdDate: this.state.atdDate ,
+			atdDate: df.format(this.state.atdDate,'yyyy-MM-dd') ,
 			atdUserId: this.state.atdUserId ,
 			originUserId: this.state.originUserId, 
 			originAtdDate: this.state.originAtdDate
