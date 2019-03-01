@@ -34,7 +34,7 @@ const App = props =>
 	<Router history={history}>
 		<Row className="container">
 			<Col className="min-100 bk440" span={3}>
-				<h2 className="menu-title">超级排班系统</h2>
+				<h2 className="menu-title">排班系统</h2>
 				<RouteMenu theme="dark"  defaultOpenKeys={['/system']} mode="inline" menus={NAV_MENU} urls={NAV_URLS} />
 			</Col>
 			<Col className="min-100" span={21}>

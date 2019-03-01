@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import df from 'dateformat-util'
 import "./style.less";
 import { Button, Icon, Spin, Calendar, Select, Tag, Alert, message, Modal, Tree, DatePicker, Form, Radio } from "antd";
-import { $get, $post, setCookie, getCookie } from "../../utils/auth";
+import { $get, $post, setCookie, getCookie, apiDomain } from "../../utils/auth";
 import { getNextFirstDay } from "../../utils/fns";
 const Option = Select.Option;
 const TreeNode = Tree.TreeNode;
@@ -30,7 +30,8 @@ class Dutycalendar extends Component {
 		atdUserId: '',
 		atdDate: new Date(),
 		search: '',
-		targetUsers: []
+		targetUsers: [],
+		btLoading: false
 	};
 
 	//获取日历数据
@@ -304,6 +305,44 @@ class Dutycalendar extends Component {
 		})
 	}
 
+
+	// 导出
+	doExport = () => {
+		let params = `belongId=${this.state.selectValue}&year=${this.state.year}&month=${this.state.month}&planId=${this.state.jihuaValue}`;	
+		let url = apiDomain + `/paiban/api/atd/attendance/v1/list/month/export?${params}`;
+		window.open(url,'_blank');
+		// let _this = this;
+		// let xhr = new XMLHttpRequest();
+		// xhr.open('POST', url, true); //get请求，请求地址，是否异步
+		// xhr.responseType = "blob";
+		// xhr.setRequestHeader("token", getCookie('AUTH_TOKEN_KEY'));
+		// xhr.onload = function () {
+		// 	if (this.status == 200) {
+		// 		_this.exportFile(this.response,`${_this.state.year}年${_this.state.month}月值班日历.xls`)
+		// 	}
+		// }
+		// xhr.send();
+	}
+
+	exportFile = (blob, fileName = '') => {
+		let b = '';
+		if (window.navigator.msSaveOrOpenBlob){
+			navigator.msSaveBlob(blob, fileName);
+		} else {
+			b = new Blob([blob], {
+				type: 'application/vnd.ms-excel'
+			});
+		}
+		let a = document.createElement('a');
+		let url = window.URL.createObjectURL(b);
+		a.href = url;
+		a.download = fileName;
+		let evt = document.createEvent('MouseEvents'); // 创建window的事件
+		evt.initEvent('click', false, false); //  事件是click事件
+		a.dispatchEvent(evt);
+		window.URL.revokeObjectURL(url);
+	}
+
 	async componentDidMount(){
 		await this.getBelongIds();
 		await this.getPlanes();
@@ -404,6 +443,7 @@ class Dutycalendar extends Component {
 							<Button type="primary" onClick={this.next}>下个月<Icon type="right" /></Button>
 						</ButtonGroup>
 				</div>
+				<Button className="export-btn" loading={this.state.btLoading} type="primary" onClick={this.doExport}>导出</Button>
 				{ calender }
 
 				<Modal title="人员调换" visible={this.state.visible} onOk={this.doExchange} onCancel={this.closeChange}>

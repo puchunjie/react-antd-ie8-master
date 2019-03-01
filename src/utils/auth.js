@@ -140,7 +140,9 @@ export const $post =
 	// data 为json对象
 	(url, data, type = "POST", dataType = "JSON") =>
 		$.ajax({
-			url: apiDomain + url, type, dataType,
+			url: apiDomain + url, 
+			type, 
+			dataType,
 			data: JSON.stringify(data),
 			headers: {
 				'content-type': CONTENT_TYPE.JSON,
