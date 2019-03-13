@@ -1,0 +1,184 @@
+<!doctype html>
+<html>
+
+<head>
+	<meta http-equiv="x-ua-compatible" content="ie=edge,chrome=1" />
+	<meta http-equiv="cache-control" content="no-transform" />
+	<meta http-equiv="cache-control" content="no-siteapp" />
+	<meta http-equiv="cache-control" content="no-cache" />
+	<meta http-equiv="imagetoolbar" content="no" />
+	<meta http-equiv="pragma" content="no-cache" />
+	<meta charset="utf-8" />
+	<meta name="renderer" content="webkit" />
+	<meta name="format-detection" content="telephone=no" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+	<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no" />
+	<title>登录</title>
+	<link rel="shortcut icon" href="./static/favicon.ico" />
+	<link rel="stylesheet" href="https://unpkg.com/iview/dist/styles/iview.css">
+	<style>
+		html,body{
+				height: 100%;
+				padding: 0;
+				margin: 0;
+			}
+
+			.login {
+				width: 100%;
+				height: 100%;
+				background-image: url('https://file.iviewui.com/iview-admin/login_bg.jpg');
+				background-size: cover;
+				background-position: 50%;
+				position: relative
+			}
+
+			.login-con {
+				position: absolute;
+				right: 160px;
+				top: 50%;
+				-webkit-transform: translateY(-60%);
+				transform: translateY(-60%);
+				width: 300px
+			}
+
+			.login-con-header {
+				font-size: 16px;
+				font-weight: 300;
+				text-align: center;
+				padding: 30px 0
+			}
+
+			.login-con .form-con {
+				padding: 10px 0 0
+			}
+
+			.login-con .login-tip {
+				font-size: 10px;
+				text-align: center;
+				color: #c3c3c3
+			}
+
+	</style>
+</head>
+
+<body>
+	<div class="login">
+		<div class="login-con">
+			<div class="ivu-card">
+				<div class="ivu-card-head">
+					<p><i class="ivu-icon ivu-icon-log-in"></i> <span>欢迎登录</span></p>
+				</div>
+				<!---->
+				<div class="ivu-card-body">
+					<div class="form-con">
+						<form autocomplete="off" class="ivu-form ivu-form-label-right">
+							<div class="ivu-form-item ivu-form-item-required">
+								<!---->
+								<div class="ivu-form-item-content">
+									<div class="ivu-input-wrapper ivu-input-wrapper-default ivu-input-type">
+										<!---->
+										<!----> <i class="ivu-icon ivu-icon-ios-loading ivu-load-loop ivu-input-icon ivu-input-icon-validate"></i>
+										<input id="loginName" autocomplete="off" spellcheck="false" type="text" placeholder="请输入用户名" class="ivu-input ivu-input-default">
+										<!---->
+									</div>
+									<!---->
+								</div>
+							</div>
+							<div class="ivu-form-item ivu-form-item-required">
+								<!---->
+								<div class="ivu-form-item-content">
+									<div class="ivu-input-wrapper ivu-input-wrapper-default ivu-input-type">
+										<!---->
+										<!----> <i class="ivu-icon ivu-icon-ios-loading ivu-load-loop ivu-input-icon ivu-input-icon-validate"></i>
+										<input id="password" autocomplete="off" spellcheck="false" type="password" placeholder="请输入密码" class="ivu-input ivu-input-default">
+										<!---->
+									</div>
+									<!---->
+								</div>
+							</div>
+							<div class="ivu-form-item">
+								<!---->
+								<div id="login" class="ivu-form-item-content"><button type="button" class="ivu-btn ivu-btn-primary ivu-btn-long">
+										<!---->
+										<!----> <span>登录</span></button>
+									<!---->
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript" src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+	<script>
+		/*!
+* jQuery Cookie Plugin v1.4.1
+* https://github.com/carhartl/jquery-cookie
+*
+* Copyright 2013 Klaus Hartl
+* Released under the MIT license
+*/(function(factory){if(typeof define==='function'&&define.amd){define(['jquery'],factory);}else if(typeof exports==='object'){factory(require('jquery'));}else{factory(jQuery);}}(function($){var pluses=/\+/g;function encode(s){return config.raw?s:encodeURIComponent(s);}
+function decode(s){return config.raw?s:decodeURIComponent(s);}
+function stringifyCookieValue(value){return encode(config.json?JSON.stringify(value):String(value));}
+function parseCookieValue(s){if(s.indexOf('"')===0){s=s.slice(1,-1).replace(/\\"/g,'"').replace(/\\\\/g,'\\');}
+try{s=decodeURIComponent(s.replace(pluses,' '));return config.json?JSON.parse(s):s;}catch(e){}}
+function read(s,converter){var value=config.raw?s:parseCookieValue(s);return $.isFunction(converter)?converter(value):value;}
+var config=$.cookie=function(key,value,options){if(value!==undefined&&!$.isFunction(value)){options=$.extend({},config.defaults,options);if(typeof options.expires==='number'){var days=options.expires,t=options.expires=new Date();t.setTime(+t+days*864e+5);}
+return(document.cookie=[encode(key),'=',stringifyCookieValue(value),options.expires?'; expires='+options.expires.toUTCString():'',options.path?'; path='+options.path:'',options.domain?'; domain='+options.domain:'',options.secure?'; secure':''].join(''));}
+var result=key?undefined:{};var cookies=document.cookie?document.cookie.split('; '):[];for(var i=0,l=cookies.length;i<l;i++){var parts=cookies[i].split('=');var name=decode(parts.shift());var cookie=parts.join('=');if(key&&key===name){result=read(cookie,value);break;}
+if(!key&&(cookie=read(cookie))!==undefined){result[name]=cookie;}}
+return result;};config.defaults={};$.removeCookie=function(key,options){if($.cookie(key)===undefined){return false;}
+$.cookie(key,'',$.extend({},options,{expires:-1}));return!$.cookie(key);};}));
+	</script>
+	<script>
+		$(function(){
+			$('#login').click(function(){
+				var loginName = $("#loginName").val();
+				var password = $("#password").val();
+				if(loginName == ''){
+					$("#loginName").parents('.ivu-form-item').addClass('ivu-form-item-error')
+					return 
+				}else{
+					$("#loginName").parents('.ivu-form-item').removeClass('ivu-form-item-error')
+				}
+				if(loginName == ''){
+					$("#password").parents('.ivu-form-item').addClass('ivu-form-item-error')
+					return 
+				}else{
+					$("#password").parents('.ivu-form-item').removeClass('ivu-form-item-error')
+				}
+				$.ajax({
+					url: '/paiban/api/v1/login',
+					type: 'POST',
+					dataType: 'json',
+					data: JSON.stringify({
+						loginName: loginName,
+						password: password
+					}),
+					headers: {
+						'content-type': "application/json; charset=utf-8"
+					},
+					success: function (res) {
+						if(res.status == 200){
+							setCookie('AUTH_TOKEN_KEY', res.body.token);
+							setCookie('roleList', JSON.stringify(res.body.roleList));
+							setCookie('userName', res.body.userName);
+							setCookie('userId', res.body.userId);
+							window.location.href = '/paiban/index.html#/dutycalendar';
+						}else{
+							alert(res.msg);
+						}
+					}
+				})
+			})
+		})
+		
+		function setCookie(name, value) {
+			$.cookie(name, value);
+		}
+	</script>
+</body>
+
+</html>

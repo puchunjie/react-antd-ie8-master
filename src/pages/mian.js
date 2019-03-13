@@ -17,11 +17,11 @@ class Mian extends Component {
         delCookie('roleList');
         delCookie('userName');
         delCookie('userId');
-        window.location.href = process.env.NODE_ENV == 'development' ? '/#/login' : '/paiban/#/login';
+        window.location.href = process.env.NODE_ENV == 'development' ? '/login.html' : '/paiban/login.html';
     }
     
      resetPassword = () => {
-        window.location.href = process.env.NODE_ENV == 'development' ? '/#/resetPwd' : '/paiban/#/resetPwd';
+        window.location.href = process.env.NODE_ENV == 'development' ? '/#/resetPwd' : '/paiban/index.html#/resetPwd';
     }
     
     

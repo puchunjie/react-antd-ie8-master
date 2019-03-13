@@ -120,6 +120,17 @@ class Dutyschedule extends Component {
 			render: (text, record) => (
 				<span>{ { 11: '工作日',12: '节假日',13: '周末' }[record.atdDateType] }</span>
 			)
+		},{
+			key: "4",
+			dataIndex: 'dateRemark',
+			title: "值班日期说明"
+		},{
+			key: "3",
+			dataIndex: 'generateType',
+			title: "记录生成类型",
+			render: (text, record) => (
+				<span>{ ['系统自动排班','对调','调换'][record.generateType] }</span>
+			)
 		}]
 	}
 

@@ -487,12 +487,12 @@ class out extends Component {
                         </Select>
                     </FormItem>
             
-                    <FormItem
+                    {/* <FormItem
                         {...formItemLayout}
                         label={ '每日值班' + this.state.NAMES.staff + '数'}
                         hasFeedback
                     >
-                        {/* <Select value={this.state.employeeNum} onChange={this.employeeChange} style={{ width: 650 }}>
+                        <Select value={this.state.employeeNum} onChange={this.employeeChange} style={{ width: 650 }}>
                             <Option key="1" value="1">1人</Option>
                             <Option key="2" value="2">2人</Option>
                             <Option key="3" value="3">3人</Option>
@@ -501,10 +501,10 @@ class out extends Component {
                             <Option key="6" value="6">6人</Option>
                             <Option key="7" value="7">7人</Option>
                             <Option key="8" value="8">8人</Option>
-                        </Select> */}
+                        </Select>
                         {this.state.employeeNum}人
-                    </FormItem>
-                    <span style={{display:'block',width:'100%',lineHeight:50,color:'red',textIndent:220}}>
+                    </FormItem> */}
+                    <span style={{display:'block',width:'100%',lineHeight:'50px',color:'red',textIndent:220}}>
                         { this.state.tipDesc  }
                         </span>
                     <FormItem

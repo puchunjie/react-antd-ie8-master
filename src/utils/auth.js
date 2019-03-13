@@ -17,7 +17,7 @@ export const CONTENT_TYPE = {
 	FORM: "multipart/form-data",
 };
 export const apiDomain = process.env.NODE_ENV == 'development' ? '' : '';
-const loginHref = process.env.NODE_ENV == 'development' ? '/#/login' : '/paiban/#/login';
+const loginHref = process.env.NODE_ENV == 'development' ? '/login.html' : '/paiban/login.html';
 
 jQuery.support.cors = true;
 // jquery全局请求控制
