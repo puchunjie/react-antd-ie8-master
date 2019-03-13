@@ -1,6 +1,7 @@
 import React from "react";
 import { Spin } from "antd";
 
+import Main from 'bundle-loader?lazy&name=home!../pages/mian'
 import Dutycalendar from "bundle-loader?lazy&name=home!../pages/Dutycalendar/index";
 import Typesetplan from "bundle-loader?lazy&name=home!../pages/Typesetplan/index";
 import Dutyschedule from "bundle-loader?lazy&name=home!../pages/Dutyschedule/index";
@@ -23,8 +24,8 @@ const LM = bundle(Empty, LeaveMange, { type: "callback" });
 const RP = bundle(Empty, ResetPwd, { type: "callback" });
 const routes = [
 	{ type: "redirect", exact: true, strict: true, from: "/", to: "/dutycalendar" },
-	{ type: "route", path: "/resetPwd", component: RP },
 	{ type: "route", path: "/login", component: Logind },
+	{ type: "route", path: "/resetPwd", component: RP },
 	{ type: "route", path: "/dutycalendar", component: DutyC },
 	{ type: "route", path: "/typesetplan", component: TypeS },
 	{ type: "route", path: "/dutyschedule", component: DutyS },

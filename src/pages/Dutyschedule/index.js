@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import "./style.less";
-import {  Button, Spin, Select, Table,Form, Input } from "antd";
+import {  Button, Spin, Select, Table,Form, Input, Modal } from "antd";
 import { $get, $post, getCookie, setCookie } from "../../utils/auth";
 import { NAMES } from '../../utils/configs'
 const Option = Select.Option;
@@ -23,7 +23,10 @@ class Dutyschedule extends Component {
 	
 		},
 		NAMES: NAMES,
-		total: 0
+		total: 0,
+		vDays: [],
+		userData: [],
+		userShow: false
 	};
 
 	//获取排班计划列表
@@ -40,6 +43,7 @@ class Dutyschedule extends Component {
 					total: res.body.total,
 					list: res.body ? res.body.records.map(item => {
 						return {
+							userId: item.userId,
 							userName: item.userName,
 							position: item.atdUserType === 100 ? NAMES.leader : NAMES.staff,
 							workingAtdDays: Number(item.workingAtdDays),
@@ -68,15 +72,54 @@ class Dutyschedule extends Component {
 		},{
 			key: "3",
 			dataIndex: 'workingAtdDays',
-			title: "工作日值班天数(天)"
+			title: "工作日值班天数(天)",
+			render: (text, record) => (
+				record.workingAtdDays > 0 ? <a onClick={this.showModle.bind(this,11,record.userId)}>{record.workingAtdDays }</a> : <span>{record.workingAtdDays }</span>
+			)
 		},{
 			key: "4",
 			dataIndex: 'weekendAtdDays',
 			title: "周末值班天数(天)",
+			render: (text, record) => (
+				record.weekendAtdDays > 0 ? <a onClick={this.showModle.bind(this,13,record.userId)}>{record.weekendAtdDays }</a> : <span>{record.weekendAtdDays }</span>
+			)
 		},{
 			key: "5",
 			dataIndex: 'vacationAtdDays',
-			title: "节假日值班天数(天)"
+			title: "节假日值班天数(天)",
+			render: (text, record) => (
+				record.vacationAtdDays > 0 ? <a onClick={this.showModle.bind(this,12,record.userId)}>{record.vacationAtdDays }</a> : <span>{record.vacationAtdDays }</span>
+				
+			)
+		}]
+	}
+
+	showModle = (atdDateType,userId) => {
+		$post('/paiban/api/atd/attendance/v1/list/user',{
+			atdUserId: userId,
+			atdDateType: atdDateType
+		}).done(res => {
+			if(res.status == 200){
+				this.setState({
+					userData: res.body || [],
+					userShow: true
+				})
+			}
+		})
+	}
+
+	cols1 = data => {
+		return [{
+			key: "1",
+			dataIndex: 'atdDate',
+			title: "值班日期"
+		},{
+			key: "2",
+			dataIndex: 'atdDateType',
+			title: "值班日期类型",
+			render: (text, record) => (
+				<span>{ { 11: '工作日',12: '节假日',13: '周末' }[record.atdDateType] }</span>
+			)
 		}]
 	}
 
@@ -169,14 +212,20 @@ class Dutyschedule extends Component {
 		})
 	}
 
+	userHide = () => {
+		this.setState({
+			userData: [],
+			userShow: false
+		})
+	}
+
 	async componentDidMount(){
 		await this.getBelongIds();
 		await this.getYears();
 		this.getList();
-		console.log(this)
 	}
 	render() {
-		const { list, loading, selectValue, options } = this.state;
+		const { list, loading, selectValue, options, userData } = this.state;
 		return <Spin spinning={ loading}>
 			<div className="dutyschedule-container">
 				<Form inline onSubmit={this.search}>
@@ -208,6 +257,16 @@ class Dutyschedule extends Component {
 				</Form>
 				<Table style={{ marginTop: 20 }} rowKey='planId' bordered dataSource={list} columns={this.cols(list)} 
 				pagination={this.pagination(this.state.total,this.state.params)} />
+
+
+				<Modal title="值班列表" width={800} visible={this.state.userShow} onCancel={this.userHide}>
+				{
+					this.state.userShow ? <Table style={{ marginTop: 10 }} rowKey='userId' 
+					bordered dataSource={userData} columns={this.cols1(userData)} 
+					pagination={{total:this.state.userData.length,defaultCurrent: 1}}/> : ''
+				}
+				
+			</Modal>
 			</div>
 			</Spin>;
 	};

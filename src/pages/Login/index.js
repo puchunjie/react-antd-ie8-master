@@ -52,16 +52,16 @@ class Login extends Component {
 				trigger: ['onBlur']
 			}]
         });
-        return <Modal wrapClassName="bg" title="登录" visible={true} onOk={this.handleOk} closable={false}>
-            <Form horizontal onSubmit={this.handleSubmit}>
-            <FormItem label="账户" >
-                <Input {...nameProps} placeholder="请输入账户名" />
-            </FormItem>
-            <FormItem label="密码" >
-                <Input {...passwordProps} type="password" placeholder="请输入密码" />
-            </FormItem>
-        </Form> 
-      </Modal>
+        return <div className="bg"><Modal wrapClassName="bg" className="nooo" title="登录" visible={true} onOk={this.handleOk} closable={false}>
+        <Form horizontal onSubmit={this.handleSubmit}>
+        <FormItem label="账户" >
+            <Input {...nameProps} placeholder="请输入账户名" />
+        </FormItem>
+        <FormItem label="密码" >
+            <Input {...passwordProps} type="password" placeholder="请输入密码" />
+        </FormItem>
+    </Form> 
+  </Modal></div>
     }
 }
 

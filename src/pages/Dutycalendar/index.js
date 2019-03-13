@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import df from 'dateformat-util'
 import "./style.less";
-import { Button, Icon, Spin, Calendar, Select, Tag, Alert, message, Modal, Tree, DatePicker, Form, Radio } from "antd";
+import { Button, Icon, Spin, Calendar, Select, Tag, Alert, message, Modal, Tree, DatePicker, Form, Radio, Input } from "antd";
 import { $get, $post, setCookie, getCookie, apiDomain } from "../../utils/auth";
 import { getNextFirstDay } from "../../utils/fns";
 const Option = Select.Option;
@@ -31,7 +31,11 @@ class Dutycalendar extends Component {
 		atdDate: new Date(),
 		search: '',
 		targetUsers: [],
-		btLoading: false
+		btLoading: false,
+		isSwap: true, //是否是对调
+		depOps: [], //部门列表
+		selectDepId: 'hahhah',
+		nameSearch: ''
 	};
 
 	//获取日历数据
@@ -51,12 +55,17 @@ class Dutycalendar extends Component {
 					data.atdUsers = item.atdUsers.map(el => {
 						return {
 							...el,
-							atdDate: item.atdDate
+							atdDate: item.atdDate,
+							highLight: false
 						}
 					})
 					return data
 				})
+			}else{
+				this.state.list = [];
 			}
+		}).error(err => {
+			console.log(err)
 		}).always(e => this.setState({
 			loading: false,
 			dateDone: true
@@ -75,10 +84,10 @@ class Dutycalendar extends Component {
 		})){
 			let data = this.state.list.find(item => item.atdDate == _thisDay);
 			let leaders = data.atdUsers.filter(item => item.userType == 100).map(item => {
-				return <Tag color="blue" key={item.userId} onClick={ this.tagClick.bind(this,item) }>{ item.userName }</Tag>
+				return <Tag color="blue" className={ !item.highLight && 'opcity' } key={item.userId} onClick={ this.tagClick.bind(this,item) }>{ item.userName }</Tag>
 			});
 			let inproee = data.atdUsers.filter(item => item.userType == 101).map(item => {
-				return <Tag color="green" key={item.userId}  onClick={ this.tagClick.bind(this,item) }>{ item.userName }</Tag>
+				return <Tag color="green" className={ !item.highLight && 'opcity' } key={item.userId}  onClick={ this.tagClick.bind(this,item) }>{ item.userName }</Tag>
 			});
 			let voication = <p className="v-span">{data.dateRemark && data.dateRemark == '未排班' ? '' : data.dateRemark}</p>;
 			if(data.atdDateType == -1){
@@ -138,9 +147,16 @@ class Dutycalendar extends Component {
 		})
 	}
 	doExchange = () => {
-		if(this.state.atdUserId == this.state.originUserId){
-			message.error('请选择有效的人员！');
-			return
+		if(this.state.isSwap){
+			if(this.state.atdUserId == this.state.originUserId){
+				message.error('请选择有效的人员！');
+				return
+			}
+	
+			if(this.state.atdUserId == ''){
+				message.error('请选择对掉人员！');
+				return
+			}
 		}
 
 		if(this.state.atdDate == ''){
@@ -148,34 +164,53 @@ class Dutycalendar extends Component {
 			return
 		}
 
-		if(this.state.atdUserId == ''){
-			message.error('请选择对掉人员！');
-			return
-		}
-
 		
-		$post('/paiban/api/atd/attendance/v1/user/swap',{
-			atdDate: df.format(this.state.atdDate,'yyyy-MM-dd') ,
-			atdUserId: this.state.atdUserId ,
-			originUserId: this.state.originUserId, 
-			originAtdDate: this.state.originAtdDate
-		}).done(res => {
-			if(res.status == 200){
-				message.success('调换成功！');
-				this.setState({
-					originUserId: '',
-					originAtdDate: '',
-					originUserType: '',
-					atdDate: new Date(),
-					atdUserId: '',
-					targetUsers: [],
-					visible: false
-				})
-				this.getList();
-			}else{
-				message.error(res.msg);
-			}
-		})
+		if(this.state.isSwap){
+			$post('/paiban/api/atd/attendance/v1/user/swap',{
+				atdDate: df.format(this.state.atdDate,'yyyy-MM-dd') ,
+				atdUserId: this.state.atdUserId ,
+				originUserId: this.state.originUserId, 
+				originAtdDate: this.state.originAtdDate
+			}).done(res => {
+				if(res.status == 200){
+					message.success('对调成功！');
+					this.setState({
+						originUserId: '',
+						originAtdDate: '',
+						originUserType: '',
+						atdDate: new Date(),
+						atdUserId: '',
+						targetUsers: [],
+						visible: false
+					})
+					this.getList();
+				}else{
+					message.error(res.msg);
+				}
+			})
+		}else{
+			$post('/paiban/api/atd/attendance/v1/date/change',{
+				atdDate: df.format(this.state.atdDate,'yyyy-MM-dd') ,
+				originUserId: this.state.originUserId, 
+				originAtdDate: this.state.originAtdDate
+			}).done(res => {
+				if(res.status == 200){
+					message.success('调换成功！');
+					this.setState({
+						originUserId: '',
+						originAtdDate: '',
+						originUserType: '',
+						atdDate: new Date(),
+						atdUserId: '',
+						targetUsers: [],
+						visible: false
+					})
+					this.getList();
+				}else{
+					message.error(res.msg);
+				}
+			})
+		}
 	}
 
 	closeChange = () => {
@@ -190,31 +225,7 @@ class Dutycalendar extends Component {
 			search: ''
 		})
 	}
-
-	// treeSelect = (info) => {
-	// 	let node = this.findTarget(info[0],this.state.treeData);
-	// 	if(info[0].includes('user_')){
-	// 		this.state.atdUserId = Number(node.code)
-	// 	}else{
-	// 		this.state.atdUserId = ''
-	// 	}
-	// }
-
-	// 查找树
-    // findTarget(targetName, source) {
-	// 	let resut = undefined;
-    //     for (let item of source) {
-	// 		if (item.id === targetName) {
-	// 			resut = item
-	// 			if(resut) return resut
-	// 		}else if(item.children && item.children.length) {
-	// 			resut = this.findTarget(targetName, item.children)
-	// 			if(resut) return resut
-	// 		}
-	// 	}
-	// }
 	
-
 	// 日历切换
 	onPanelChange = (date, mode) => {
 		let year = date.getYear();
@@ -224,6 +235,7 @@ class Dutycalendar extends Component {
 		this.setState({
 			dateValue: new Date(date.time)
 		})
+		this.setEmpty();
 		this.getPlanes().then(() => {
 			this.getList()
 		});
@@ -231,9 +243,10 @@ class Dutycalendar extends Component {
 	//选择计划归属
 	 handleChange = (value) => {
 		this.setState({
-            selectValue: value
+        selectValue: value
 		});
 		setCookie('belongId', value);
+		this.setEmpty();
 		this.getPlanes(value).then(() => {
 			this.getList()
 		});
@@ -244,9 +257,48 @@ class Dutycalendar extends Component {
     	jihuaValue: value
 		});
 		this.state.jihuaValue = value;
+		this.setEmpty();
 		this.getList();
 	}
 
+	depChange = value => {
+		this.setState({
+    	selectDepId: value
+		});
+		this.state.selectDepId = value;
+		this.setHight(null,value);
+	}
+
+	searchChange = e => {
+		this.setState({
+			nameSearch: e.target.value
+		})
+		this.state.nameSearch = e.target.value;
+		this.setHight(e.target.value)
+	}
+
+	setHight = (search,depId) => {
+		depId = depId || this.state.selectDepId;
+		search = search === null ? this.state.nameSearch : search;
+		let widthDep = depId !== 'hahhah';
+		let list = JSON.parse(JSON.stringify(this.state.list));
+		list.forEach(item => {
+			item.atdUsers.forEach(user => {
+				let textH = user.userName.includes(search);
+				user.highLight =  widthDep ? textH && user.deptId === depId : textH
+			})
+		})
+		this.setState({list})
+	}
+
+	setEmpty = () => {
+		this.setState({
+			selectDepId: 'hahhah',
+			nameSearch: ''
+		});
+		this.selectDepId = 'hahhah';
+		this.nameSearch = '';
+	}
 	// 获取计划归属
 	getBelongIds = () => {
 		return $get('/paiban/api/atd/attendance-plan-belong/v1/search').done(res => {
@@ -266,21 +318,6 @@ class Dutycalendar extends Component {
 			}
 		})
 	}
-	
-	// 获取人员数据
-    // getUerData(){
-    //     $post('/paiban/api/user/v1/tree').done(res => {
-	// 		if(res.status == 200){
-	// 			this.setState({
-	// 				treeData: res.body
-	// 			})
-	// 		}
-	// 	})
-	// }
-	
-	// searchChange = (e) => {
-	// 	this.setState({search: e.target.value})
-	// }
 
 	getPlanes = (bid) => {
 		return $post('/paiban/api/atd/attendance-plan/v1/list/by_belong_month',{
@@ -305,23 +342,27 @@ class Dutycalendar extends Component {
 		})
 	}
 
+	getDeps = (bid) =>{
+		return $get('/paiban/api/atd/attendance/v1/depts',{
+			belongId: bid || this.state.selectValue,
+			planId: this.state.jihuaValue,
+			year: this.state.year,
+			month: this.state.month
+		}).done(res => {
+			if(res.status == 200){
+				let depOps = res.body || [];
+				depOps.unshift({deptId: 'hahhah',name: "全部"})
+				this.setState({depOps})
+			}
+		})
+	}
+
 
 	// 导出
 	doExport = () => {
 		let params = `belongId=${this.state.selectValue}&year=${this.state.year}&month=${this.state.month}&planId=${this.state.jihuaValue}`;	
 		let url = apiDomain + `/paiban/api/atd/attendance/v1/list/month/export?${params}`;
 		window.open(url,'_blank');
-		// let _this = this;
-		// let xhr = new XMLHttpRequest();
-		// xhr.open('POST', url, true); //get请求，请求地址，是否异步
-		// xhr.responseType = "blob";
-		// xhr.setRequestHeader("token", getCookie('AUTH_TOKEN_KEY'));
-		// xhr.onload = function () {
-		// 	if (this.status == 200) {
-		// 		_this.exportFile(this.response,`${_this.state.year}年${_this.state.month}月值班日历.xls`)
-		// 	}
-		// }
-		// xhr.send();
 	}
 
 	exportFile = (blob, fileName = '') => {
@@ -346,6 +387,7 @@ class Dutycalendar extends Component {
 	async componentDidMount(){
 		await this.getBelongIds();
 		await this.getPlanes();
+		await this.getDeps();
 		this.getList();
 		// this.getUerData();
 	}
@@ -362,6 +404,7 @@ class Dutycalendar extends Component {
 		this.setState({
 			dateValue: new Date(date)
 		})
+		this.setEmpty();
 		this.getPlanes().then(() => {
 			this.getList()
 		});
@@ -379,35 +422,26 @@ class Dutycalendar extends Component {
 		this.setState({
 			dateValue: new Date(date)
 		})
+		this.setEmpty();
 		this.getPlanes().then(() => {
 			this.getList()
 		});
 	}
 
+	swapChange = (e) => {
+    this.setState({
+      isSwap: e.target.value,
+    });
+  }
+
 	render() {
-		const { dateValue, loading, options, selectValue, treeData,atdDate, jihuaValue,jihuaoptions } = this.state;
+		const { dateValue, loading, options, selectValue, treeData,atdDate, jihuaValue,jihuaoptions,selectDepId, depOps, nameSearch } = this.state;
 		let calender = null;
 		if(this.state.dateDone){
-			calender = <Calendar ref="calender" className="server-calendar"
+			calender = <Calendar className={ nameSearch === '' ? 'no-opcity server-calendar' : 'server-calendar' } ref="calender"
 			value={dateValue} 
 			onPanelChange={ this.onPanelChange} dateCellRender={this.dateCellRender} />
 		}
-
-		// const drawTreeNodes = (list,target = "") => {
-		// 	if(list && list.length){
-		// 		if(list.length > 0){
-		// 			return list.filter(item => {
-		// 				return item.id.includes('dept_') || item.text.includes(target)
-		// 			}).map(item => {
-		// 				return <TreeNode title={item.text} key={item.id}>
-		// 						{drawTreeNodes(item.children,target)}
-		// 					</TreeNode>
-		// 			})
-		// 		}else{
-		// 			return ''
-		// 		}
-		// 	}
-		// }
 
 		const disabledDate = (current) => {
 			let year = dateValue.getFullYear();
@@ -426,50 +460,56 @@ class Dutycalendar extends Component {
 		return <Spin spinning={ loading}>
 			<div className="dutycalendar-container">
 				<div className="belong-select">
-					计划归属 ： <Select value={ selectValue } style={{ width: 200,marginRight: 10 }} onSelect={this.handleChange}>
+					计划归属 ： <Select value={ selectValue } style={{ width: 180,marginRight: 10 }} onSelect={this.handleChange}>
 						{options.map((option) => {
 							return <Option key={ option.id } value={ option.id }>{ option.name }</Option>
 						})}
 						</Select>
 
-						值班计划：<Select value={ jihuaValue } style={{ width: 200 }} onSelect={this.jiaChange}>
+						值班计划：<Select value={ jihuaValue } style={{ width: 150,marginRight: 10 }} onSelect={this.jiaChange}>
 						{jihuaoptions.map((option) => {
 							return <Option key={ option.id } value={ option.id }>{ option.name }</Option>
 						})}
 						</Select>
 
-						<ButtonGroup style={{ marginLeft:100 }}>
+						部门：<Select value={ selectDepId } style={{ width: 150,marginRight: 10 }} onSelect={this.depChange}>
+						{depOps.map((option) => {
+							return <Option key={ option.deptId } value={ option.deptId }>{ option.name }</Option>
+						})}
+						</Select>
+
+						名称：<Input style={{ width: 150 }} value={this.state.nameSearch} onChange={this.searchChange} placeholder="请输入人名" />
+						<ButtonGroup className="next-prev">
 							<Button type="primary" onClick={this.prev}><Icon type="left" />上个月</Button>
 							<Button type="primary" onClick={this.next}>下个月<Icon type="right" /></Button>
 						</ButtonGroup>
+						<Button className="export-btn" loading={this.state.btLoading} type="primary" onClick={this.doExport}>导出</Button>
 				</div>
-				<Button className="export-btn" loading={this.state.btLoading} type="primary" onClick={this.doExport}>导出</Button>
+				
 				{ calender }
 
 				<Modal title="人员调换" visible={this.state.visible} onOk={this.doExchange} onCancel={this.closeChange}>
-					{/* {
-						this.state.visible ? 
-						<div>
-							<Input value={this.state.search} onChange={this.searchChange} placeholder="请输入搜索内容" />
-						<div className="tree-warp">
-						<Tree className="myCls" showLine onSelect={this.treeSelect} defaultExpandAll>
-							{drawTreeNodes(treeData,this.state.search)}
-						</Tree>
-					</div>
-						</div> : ''
-					} */}
 					<Form horizontal>
 						<FormItem {...formItemLayout} label="调换日期" >
 							<DatePicker value={atdDate} disabledDate={disabledDate} onChange={this.findUser}/>
-        				</FormItem>
-						<FormItem {...formItemLayout} label="调换人员" >
+        		</FormItem>
+						<FormItem {...formItemLayout} label="调换类型" >
+						<RadioGroup onChange={this.swapChange} value={this.state.isSwap}>
+							<Radio key="1" value={true}>对调</Radio>
+							<Radio key="2" value={false}>调换</Radio>
+						</RadioGroup>
+        		</FormItem>
+						{
+							this.state.isSwap ? <FormItem {...formItemLayout} label="调换人员" >
 							<div>
 								{
 									this.state.targetUsers.map((item,i) => <Tag color={item.actived ? 'blue' : ''} key={item.userId} 
 									onClick={ this.targetClick.bind(this,i) }>{ item.userName }</Tag>)
 								}
 							</div>
-        				</FormItem>
+        		</FormItem> : ''
+						}
+						
 					</Form>
 				</Modal>
 			</div>
