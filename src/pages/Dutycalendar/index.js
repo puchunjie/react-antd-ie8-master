@@ -65,7 +65,6 @@ class Dutycalendar extends Component {
 				this.state.list = [];
 			}
 		}).error(err => {
-			console.log(err)
 		}).always(e => this.setState({
 			loading: false,
 			dateDone: true
@@ -278,14 +277,15 @@ class Dutycalendar extends Component {
 	}
 
 	setHight = (search,depId) => {
-		depId = depId || this.state.selectDepId;
+		depId = depId === undefined ? this.state.selectDepId : depId;
 		search = search === null ? this.state.nameSearch : search;
-		let widthDep = depId !== 'hahhah';
 		let list = JSON.parse(JSON.stringify(this.state.list));
+		// 是否需要考虑部门
+		let withDep = depId !== 'hahhah';
 		list.forEach(item => {
 			item.atdUsers.forEach(user => {
 				let textH = user.userName.includes(search);
-				user.highLight =  widthDep ? textH && user.deptId === depId : textH
+				user.highLight =  search === '' ? user.deptId == depId : withDep ? textH && user.deptId == depId : textH;
 			})
 		})
 		this.setState({list})
@@ -350,7 +350,10 @@ class Dutycalendar extends Component {
 			month: this.state.month
 		}).done(res => {
 			if(res.status == 200){
-				let depOps = res.body || [];
+				let depOps = res.body.map(dep => {
+					dep.deptId = String(dep.deptId)
+					return dep
+				}) || [];
 				depOps.unshift({deptId: 'hahhah',name: "全部"})
 				this.setState({depOps})
 			}
@@ -438,7 +441,7 @@ class Dutycalendar extends Component {
 		const { dateValue, loading, options, selectValue, treeData,atdDate, jihuaValue,jihuaoptions,selectDepId, depOps, nameSearch } = this.state;
 		let calender = null;
 		if(this.state.dateDone){
-			calender = <Calendar className={ nameSearch === '' ? 'no-opcity server-calendar' : 'server-calendar' } ref="calender"
+			calender = <Calendar className={ nameSearch === '' && selectDepId === 'hahhah'  ? 'no-opcity server-calendar' : 'server-calendar' } ref="calender"
 			value={dateValue} 
 			onPanelChange={ this.onPanelChange} dateCellRender={this.dateCellRender} />
 		}
