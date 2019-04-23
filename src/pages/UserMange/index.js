@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import './style.less'
-import { DatePicker, Button, Icon, Spin, Calendar, Select, Table, Modal,Upload, message,Form, Input, Radio, Popover } from "antd";
+import { DatePicker, Button, Icon, Spin, Switch, Select, Table, Modal,Upload, message,Form, Input, Radio, Popover } from "antd";
 import { $get, $post, getCookie } from "../../utils/auth";
 import { NAMES } from '../../utils/configs'
 const Option = Select.Option;
@@ -20,6 +20,7 @@ class UserMange extends Component {
 			pageSize: 10,
             userName: '',
             atdUserType: '',
+            deptId: ''
 		},
         total: 0,
         depList: [], //部门列表
@@ -35,7 +36,9 @@ class UserMange extends Component {
             dept: {
                 deptId: null,
                 name: ''
-            }
+            },
+            onDuty: 1,
+            post: ''
         },
         popShow: false,
         loading: false,
@@ -54,6 +57,24 @@ class UserMange extends Component {
 			key: "2",
 			dataIndex: 'post',
 			title: "职位"
+		},{
+			key: "8",
+            title: "值班角色",
+            render: (text, record) => (
+                <span>{record.atdUserType === 100 ? NAMES.leader : NAMES.staff}</span>
+              )
+		},{
+			key: "11",
+            title: "参与排班 是/否",
+            render: (text, record) => (
+                <span>{record.onDuty === 1 ? '是' : '否'}</span>
+              )
+		},{
+			key: "9",
+            title: "部门",
+            render: (text, record) => (
+                <span>{record.dept.name}</span>
+              )
 		},{
 			key: "3",
 			dataIndex: 'phone',
@@ -113,7 +134,9 @@ class UserMange extends Component {
             gender: String(item.gender),
             dept: {
                 ...item.dept
-            }
+            },
+            onDuty: item.onDuty,
+            post: item.post
         })
         this.setState({
             userParams,
@@ -231,7 +254,9 @@ class UserMange extends Component {
             dept: {
                 deptId: null,
                 name: ''
-            }
+            },
+            onDuty: '1',
+            post: ''
          })
 		this.setState({ userParams });
     }
@@ -240,6 +265,12 @@ class UserMange extends Component {
 	handleChange = (value) => {
 		let params = Object.assign({}, this.state.params, { atdUserType: value })
 		this.setState({ params });
+    }
+
+    //部门选择
+    depChange = value => {
+        let params = Object.assign({}, this.state.params, { deptId: value })
+        this.setState({ params });
     }
 
     //选择用户类型
@@ -287,6 +318,11 @@ class UserMange extends Component {
         this.setState({ userParams });
     }
 
+    asyncUserPost = e => {
+        let userParams = Object.assign({}, this.state.userParams, { post: e.target.value })
+        this.setState({ userParams });
+    }
+
     asyncEmail= e => {
         let userParams = Object.assign({}, this.state.userParams, { email: e.target.value })
         this.setState({ userParams });
@@ -302,6 +338,11 @@ class UserMange extends Component {
             name: e.target.value,
             deptId: this.state.userParams.dept.deptId
         } })
+        this.setState({ userParams });
+    }
+
+    asyncDuty = checked => {
+        let userParams = Object.assign({}, this.state.userParams, { onDuty: checked ? 1 : 0 })
         this.setState({ userParams });
     }
 
@@ -343,10 +384,11 @@ class UserMange extends Component {
 
     componentDidMount(){
         this.getUsers();
+        this.getDepList();
     }
 
     render(){
-        const { list, loading } = this.state;
+        const { list, loading, depList } = this.state;
         const props = {
             name: 'file',
             action: '/paiban/api/user/v1/import',
@@ -393,6 +435,17 @@ class UserMange extends Component {
                         <Option key="101" value="101">{ this.state.NAMES.staff }</Option>
                     </Select>
                 </FormItem>
+                <FormItem label="部门">
+                    <Select value={ this.state.params.deptId } style={{ width: 200 }} onSelect={this.depChange}>
+                        <Option key="" value="">全部</Option>
+                        {
+                            depList.map((dep,i) => {
+                                return <Option key={i} value={String(dep.deptId)}>{ dep.name }</Option>
+                            })
+                        }
+                        
+                    </Select>
+                </FormItem>
                 <FormItem label="姓名">
                     <Input placeholder="员工姓名" onChange={this.nameChange} value={this.state.params.userName} />
                 </FormItem>
@@ -419,15 +472,22 @@ class UserMange extends Component {
                     <Input placeholder="请输入姓名" value={ this.state.userParams.userName } onChange={this.asyncUserName} />
                 </FormItem>
 
-                <FormItem label="邮箱" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }}>
-                    <Input placeholder="请输入邮箱" value={ this.state.userParams.email } onChange={this.asyncEmail}/>
+                <FormItem label="部门" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }}>
+                    <Input placeholder="请输入部门名称" value={ this.state.userParams.dept.name } onChange={this.asyncDepName}  style={{ width:250 }} />
+                    <Popover content={menu()} title="选择部门" trigger="click" visible={this.state.popShow} onVisibleChange={this.handlePopChange}>
+                        <Button style={{marginLeft:10}} type="primary">选择</Button>
+                    </Popover>
+                </FormItem>
+
+                <FormItem label="职位" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }}>
+                    <Input placeholder="请输入姓名" value={ this.state.userParams.post } onChange={this.asyncUserPost} />
                 </FormItem>
 
                 <FormItem label="手机号" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }}>
                     <Input placeholder="请输入手机号" value={ this.state.userParams.phone }  onChange={this.asyncPhone}/>
                 </FormItem>
 
-                <FormItem label="用户类型" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }}>
+                <FormItem label="值班角色" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }}>
                     <Select  value={ this.state.userParams.atdUserType } onSelect={this.handleChangeUserType}>
                         <Option key="100" value="100">{ this.state.NAMES.leader }</Option>
                         <Option key="101" value="101">{ this.state.NAMES.staff }</Option>
@@ -442,11 +502,14 @@ class UserMange extends Component {
                     </Select>
                 </FormItem>
 
-                <FormItem label="部门" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }}>
-                    <Input placeholder="请输入部门名称" value={ this.state.userParams.dept.name } onChange={this.asyncDepName}  style={{ width:250 }} />
-                    <Popover content={menu()} title="选择部门" trigger="click" visible={this.state.popShow} onVisibleChange={this.handlePopChange}>
-                        <Button style={{marginLeft:10}} type="primary">选择</Button>
-                    </Popover>
+                <FormItem label="是否排班" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }}>
+                    <Switch checked={this.state.userParams.onDuty == 1} 
+                    onChange={this.asyncDuty}
+                    checkedChildren="是" unCheckedChildren="否" />
+                </FormItem>
+                
+                <FormItem label="邮箱" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }}>
+                    <Input placeholder="请输入邮箱" value={ this.state.userParams.email } onChange={this.asyncEmail}/>
                 </FormItem>
 
 

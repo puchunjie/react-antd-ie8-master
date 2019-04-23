@@ -175,7 +175,7 @@ class PageForm extends Component {
                         label="参与值班人员"
                         hasFeedback
                     >
-                        <div style={{ width:650 }}><UserTree {...planUsersProps} /></div>
+                        <div><UserTree ref="userTree" {...planUsersProps} /></div>
                     </FormItem>
                     </Form>
 		  );

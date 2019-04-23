@@ -450,7 +450,7 @@ class Dutycalendar extends Component {
 			let year = dateValue.getFullYear();
 			let month = dateValue.getMonth() + 1;
 			let maxDate = getNextFirstDay(year,month);
-			let minDate = new Date(this.state.originAtdDate);
+			let minDate = new Date(`${year}-${month}-01`);
 			
 			return current.getTime() <= minDate || current.getTime() > maxDate
 		}

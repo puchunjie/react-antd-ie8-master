@@ -2,7 +2,8 @@ import React, {
     Component
 } from "react";
 import {
-    TreeSelect
+    TreeSelect,
+    Button
 } from 'antd';
 import { $post } from "../utils/auth";
 import { NAMES } from '../utils/configs'
@@ -18,7 +19,7 @@ class UserTree extends Component {
         value: [],
         treeData: []
     }
-    onChange = (value, label, extra) => {
+    onChange = (value) => {
         this.setState({
             value
         });
@@ -54,7 +55,7 @@ class UserTree extends Component {
 
     // 获取人员数据
     getUerData(){
-        $post('/paiban/api/user/v1/tree').done(res => {
+        $post('/paiban/api/user/v1/tree?onDuty=true').done(res => {
 			if(res.status == 200){
                 const modfiyTree = (list) => {
                     let arr = list || [];
@@ -62,7 +63,7 @@ class UserTree extends Component {
                     return arr.map(item => {
                         let data = Object.assign({},item);
                         data.value = data.id;
-                        let desc = data.attributes.atdUserType ? data.attributes.atdUserType == 100 ? `  (${NAMES.leader})` : `  (${NAMES.staff})` : '';
+                        let desc = data.attributes.atdUserType ? `(${data.attributes.atdUserTypeName})` : '';
                         data.label = data.text + desc;
                         data.key = data.id;
                         data.children = modfiyTree(data.children);
@@ -71,9 +72,14 @@ class UserTree extends Component {
                 }
 				this.setState({
 					treeData: modfiyTree(res.body)
-				})
+                })
 			}
 		})
+    }
+
+    allTree = () => {
+        let values = this.state.treeData.map(item => item.id);
+       this.onChange(values)
     }
 
 
@@ -92,7 +98,10 @@ class UserTree extends Component {
             showCheckedStrategy: SHOW_PARENT,
             searchPlaceholder: '请选择'
           };
-        return <TreeSelect style={{ width:'100%',maxHeight: 125,overflowX: 'hidden' }} {...tProps} />;
+        return <div>
+                <TreeSelect style={{ width:650,maxHeight: 125,overflowX: 'hidden' }} {...tProps} />
+                <Button style={{marginLeft:10}} onClick={this.allTree} type="primary">全选</Button>
+            </div>;
     }
 }
 

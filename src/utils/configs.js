@@ -1,4 +1,4 @@
 export const NAMES =  {
-    leader: '领导',
-    staff: '干部'
+    leader: '带班领导',
+    staff: '值班干部'
 }
